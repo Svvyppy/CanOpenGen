@@ -164,6 +164,10 @@ class EdsGenerationError(CanOpenGenError):
     """The resolved Object Dictionary cannot be rendered as compatible EDS."""
 
 
+class MarkdownGenerationError(CanOpenGenError):
+    """The resolved Object Dictionary cannot be rendered as device documentation."""
+
+
 class Eds2OdError(CanOpenGenError):
     """Base class for Eds2Od discovery and execution failures."""
 

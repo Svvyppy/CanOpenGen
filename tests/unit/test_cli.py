@@ -102,7 +102,7 @@ objects:
     assert "object 'UnknownType.value' references unknown datatype 'Missing'" in output.err
 
 
-def test_generate_command_writes_eds_and_cplusplus_output(
+def test_generate_command_writes_eds_markdown_and_cplusplus_output(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
     capsys: pytest.CaptureFixture[str],
@@ -138,10 +138,12 @@ def test_generate_command_writes_eds_and_cplusplus_output(
     output = capsys.readouterr()
     assert result == 0
     assert (output_dir / "PressureSensor.eds").is_file()
+    assert (output_dir / "PressureSensor.md").is_file()
     assert (output_dir / "PressureSensorOd.cpp").is_file()
     assert (output_dir / "PressureSensorOd.hpp").is_file()
     assert "Generated" in output.out
     assert "[2200]" in (output_dir / "PressureSensor.eds").read_text(encoding="utf-8")
+    assert "# PressureSensor" in (output_dir / "PressureSensor.md").read_text(encoding="utf-8")
 
 
 def test_map_command(capsys: pytest.CaptureFixture[str]) -> None:
