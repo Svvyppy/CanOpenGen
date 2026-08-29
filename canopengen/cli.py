@@ -9,7 +9,9 @@ from pathlib import Path
 from typing import cast
 
 from canopengen.allocator import allocate_object_dictionary, diagnose_address
-from canopengen.errors import AllocationError, CanOpenGenError, CommandUnavailableError
+from canopengen.eds2od import run_eds2od
+from canopengen.errors import AllocationError, CanOpenGenError
+from canopengen.generators import generate_eds
 from canopengen.model import (
     AllocatedObjectDictionary,
     DeviceDefinition,
@@ -83,13 +85,27 @@ def _validate_all(arguments: argparse.Namespace) -> int:
     return 0
 
 
-def _unavailable(arguments: argparse.Namespace) -> int:
-    """Report commands intentionally deferred beyond Phase 1."""
-    command = cast(str, arguments.command)
-    phases = {
-        "generate": "Phase 5 EDS/Eds2Od generation",
-    }
-    raise CommandUnavailableError(f"'{command}' is not available until {phases[command]}")
+def _generate(arguments: argparse.Namespace) -> int:
+    """Generate EDS and CANoopEn C++ output from one complete device definition."""
+    device = parse_device(cast(Path, arguments.config))
+    resolved_types, dictionary = _resolve_definition(device)
+    output_dir = cast(Path, arguments.output)
+    output_dir.mkdir(parents=True, exist_ok=True)
+    eds_path = output_dir / f"{device.name}.eds"
+    eds_path.write_text(
+        generate_eds(device.name, dictionary, resolved_types),
+        encoding="utf-8",
+    )
+    result = run_eds2od(
+        eds_path,
+        output_dir,
+        device.name,
+        executable=cast(Path | None, arguments.eds2od),
+    )
+    print(f"Generated {eds_path}")
+    print(f"Generated {result.hpp_path}")
+    print(f"Generated {result.cpp_path}")
+    return 0
 
 
 def _map(arguments: argparse.Namespace) -> int:
@@ -137,12 +153,17 @@ def build_argument_parser() -> argparse.ArgumentParser:
     )
     validate_all_parser.set_defaults(handler=_validate_all)
 
-    generate_parser = subparsers.add_parser("generate", help="generate build artifacts")
+    generate_parser = subparsers.add_parser("generate", help="generate EDS and CANoopEn C++ output")
     generate_parser.add_argument("config", type=Path, help="Device YAML path")
     generate_parser.add_argument(
         "--output", type=Path, required=True, help="build output directory"
     )
-    generate_parser.set_defaults(handler=_unavailable)
+    generate_parser.add_argument(
+        "--eds2od",
+        type=Path,
+        help="optional Eds2Od executable (default: bundled tool or CANOPENGEN_EDS2OD)",
+    )
+    generate_parser.set_defaults(handler=_generate)
 
     map_parser = subparsers.add_parser("map", help="print the resolved Object Dictionary map")
     map_parser.add_argument("config", type=Path, help="Device YAML path")
