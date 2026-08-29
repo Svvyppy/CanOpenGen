@@ -38,7 +38,31 @@ The raw IR is structurally valid but unresolved. It intentionally contains modul
 names, custom base names, symbolic references, and absent automatic addresses. Later
 stages produce new resolved models instead of mutating YAML dictionaries.
 
-## Phase 3 type IR
+## Phase 4 module graph
+
+The module resolver recursively loads `Modules/<namespace>.yml` and produces:
+
+```text
+ResolvedModuleGraph
+├── root: DeviceDefinition | ModuleDefinition
+├── root_dependencies[]
+└── ResolvedModule[]
+    ├── ModuleDefinition
+    ├── parameters[]
+    └── dependencies[]
+```
+
+The module tuple is dependency-first and contains each equally configured transitive
+module once. DFS state reports a complete dependency cycle; a separate configuration
+registry rejects one namespace reached with different scalar parameters. Direct
+duplicate imports fail instead of being silently normalized.
+
+`ResolvedModuleGraph` exposes the combined object/PDO inputs and each owner's transitive
+visibility. `ResolvedPdoDefinition` replaces every local, imported, or explicit
+qualified mapping name with a `ResolvedObjectReference`. Unknown and ambiguous names
+fail before generator phases.
+
+## Phase 3/4 type IR
 
 The type resolver recursively lowers each local type reference without changing raw
 definitions:
@@ -57,9 +81,10 @@ Every `ResolvedDataType` records its declared name, resolved primitive, applicab
 custom type name, complete alias chain, and inherited/declared enum semantics. A
 per-run recursion stack reports exact cycles without global mutable resolver state.
 
-Type resolution now runs before address allocation in CLI validation. Phase 4 will
-construct a transitive namespace-aware type environment and then reuse the same local
-lowering rules.
+The graph-aware resolver builds one declaration table keyed by `(namespace, local
+name)`. Local declarations shadow imports; imported unqualified names must be unique;
+explicit qualified names remain selectable. Cross-module aliases use the same enum,
+range, and cycle rules as device-local aliases.
 
 ## Phase 2 address IR
 
@@ -80,5 +105,5 @@ and compatibility tests use the same implementation. Arrays produce reserved cou
 sequential element entries; records produce reserved count and allocated field entries.
 
 Phase 2 operates on a supplied complete object sequence and has no module-loading
-knowledge. The CLI currently supplies device-local or module-local objects. Phase 4
-will pass the fully resolved transitive object set into the same allocator.
+knowledge. The CLI passes the Phase 4 graph's complete transitive object set into the
+same allocator.

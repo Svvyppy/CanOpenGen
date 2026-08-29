@@ -6,9 +6,9 @@ become the single source of truth for validation, deterministic address allocati
 EDS generation, Markdown documentation, and CANoopEn C++ generation through Eds2Od.
 
 > [!NOTE]
-> Phase 3 provides schema-v1 parsing, custom type resolution, and deterministic
-> device-local address allocation. Module/PDO resolution and output generation are not
-> implemented yet.
+> Phase 4 provides schema-v1 parsing, recursive module/type/reference resolution, and
+> deterministic complete-device address allocation. PDO payload validation and output
+> generation are not implemented yet.
 
 ## Planned pipeline
 
@@ -57,8 +57,9 @@ cmake --build build --target docs
 ## Validation and address maps
 
 Every definition starts with `schema: 1` and contains exactly one `device` or `module`
-identity. The current CLI validates YAML syntax, the public JSON Schema, aliases,
-enums, manual addresses, and deterministic automatic allocation:
+identity. The current CLI validates YAML syntax, the public JSON Schema, recursive
+module dependencies, aliases, enums, symbolic references, manual addresses, and
+deterministic automatic allocation:
 
 ```bash
 canopengen validate Device/PressureSensor.yml
@@ -66,10 +67,11 @@ canopengen validate-all
 canopengen map Device/PressureSensor.yml
 ```
 
-The example project demonstrates imports, parameter plumbing, aliases, enums,
-variables, a record, an array, manual addresses, and symbolic TPDO/RPDO mappings.
-These constructs are parsed into immutable models. Imported module objects and PDO
-semantics will be added in their dedicated resolver phases.
+The example project demonstrates nested imports, equal transitive dependency
+deduplication, scalar parameter plumbing, imported aliases, enums, variables, a record,
+an array, manual addresses, and local/qualified TPDO/RPDO references. The map includes
+the complete transitive module object set. PDO bit-width and direction validation stay
+in the dedicated PDO phase.
 
 The public IDE schema is [schemas/canopengen.schema.json](schemas/canopengen.schema.json).
 
@@ -99,6 +101,19 @@ types:
 
 Enum values are checked against the exact signed/unsigned primitive range. Boolean,
 real, string, and domain primitives cannot back schema-v1 enums.
+
+## Reusable modules
+
+Modules are loaded recursively from `Modules/<name>.yml`; the filename stem is their
+identity namespace. Dependencies are resolved in deterministic dependency-first order,
+equal transitive imports are deduplicated, and direct duplicates, missing modules,
+parameter conflicts, and cycles fail with contextual diagnostics. Scalar parameters
+are retained in the resolved graph as the schema-v1 extension point; Phase 4 does not
+introduce a template language.
+
+Type and object reference lookup is local-first. An unqualified imported name must be
+unique, while an explicit name such as `CommonTypes.FirmwareVersion` or
+`Diagnostics.supply_voltage` selects its namespace directly.
 
 ## Automatic addressing
 
@@ -135,9 +150,9 @@ and [architecture plan](docs/wiki/Architecture.md).
 
 ## Project status
 
-Repository infrastructure, parsing, deterministic address allocation, and Phase 3
-alias/enum resolution are implemented. Phase 4 adds recursive modules and reference
-namespaces. The first stable release will be `v1.0.0` only after the complete
-YAML-to-Eds2Od pipeline and its acceptance suite pass.
+Repository infrastructure, parsing, deterministic address allocation, alias/enum
+lowering, and Phase 4 recursive module/reference resolution are implemented. Phase 5
+adds the EDS backend and real Eds2Od integration. The first stable release will be
+`v1.0.0` only after the complete YAML-to-Eds2Od pipeline and its acceptance suite pass.
 
 CanOpenGen is licensed under the [Apache License 2.0](LICENSE).

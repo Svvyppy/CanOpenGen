@@ -39,9 +39,11 @@ types:
       READY: 1
 ```
 
-Alias bases may name another local custom type and resolve recursively. Unknown bases,
-cycles, primitive-name shadowing, non-integer enum bases, and out-of-range enum values
-are semantic errors. Imported type lookup is added with module resolution in Phase 4.
+Alias bases may name another local or imported custom type and resolve recursively.
+Lookup is local-first; an unqualified imported name must be unique, and qualified forms
+such as `CommonTypes.FirmwareVersion` select a module explicitly. Unknown/ambiguous
+bases, cycles, primitive-name shadowing, non-integer enum bases, and out-of-range enum
+values are semantic errors.
 
 ## Objects
 
@@ -67,7 +69,10 @@ pdo:
       mapping:
         - pressure
         - state
+        - Diagnostics.supply_voltage
 ```
 
-Phase 1 validates this structure but deliberately defers reference/type/payload
-validation to the PDO phase.
+The owner namespace is searched first. Imported unqualified keys are accepted only when
+one visible target exists; explicit qualified names disambiguate module objects. Phase 4
+resolves object and record-field identities. Datatype mappability, direction, encoded
+mapping values, and the 64-bit payload limit remain in the PDO phase.
