@@ -3,6 +3,6 @@
 import canopengen
 
 
-def test_package_has_development_version() -> None:
-    """The initial package exposes a valid pre-release development version."""
-    assert canopengen.__version__ == "0.0.0"
+def test_package_has_release_version() -> None:
+    """The release package exposes the version declared in project metadata."""
+    assert canopengen.__version__ == "1.0.0"
