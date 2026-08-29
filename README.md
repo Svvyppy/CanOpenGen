@@ -6,8 +6,8 @@ become the single source of truth for validation, deterministic address allocati
 EDS generation, Markdown documentation, and CANoopEn C++ generation through Eds2Od.
 
 > [!NOTE]
-> Phase 1 provides schema-v1 structural validation and explicit raw models. Module,
-> type, address, and PDO resolution plus output generation are not implemented yet.
+> Phase 2 provides schema-v1 parsing and deterministic device-local address allocation.
+> Module/type/PDO resolution and output generation are not implemented yet.
 
 ## Planned pipeline
 
@@ -53,22 +53,53 @@ cmake -S . -B build
 cmake --build build --target docs
 ```
 
-## Structural validation
+## Validation and address maps
 
 Every definition starts with `schema: 1` and contains exactly one `device` or `module`
-identity. The current CLI validates YAML syntax and the public JSON Schema:
+identity. The current CLI validates YAML syntax, the public JSON Schema, manual
+addresses, and deterministic automatic allocation:
 
 ```bash
 canopengen validate Device/PressureSensor.yml
 canopengen validate-all
+canopengen map Device/PressureSensor.yml
 ```
 
 The example project demonstrates imports, parameter plumbing, aliases, enums,
 variables, a record, an array, manual addresses, and symbolic TPDO/RPDO mappings.
-These constructs are parsed into immutable raw models; cross-file and semantic checks
-will be added in their dedicated phases.
+These constructs are parsed into immutable models. Imported module objects and custom
+type/PDO semantics will be added in their dedicated resolver phases.
 
 The public IDE schema is [schemas/canopengen.schema.json](schemas/canopengen.schema.json).
+
+## Automatic addressing
+
+Schema v1 partitions application indexes as follows:
+
+| Category | Inclusive range |
+| --- | --- |
+| `telemetry` | `0x2000–0x27FF` |
+| `command` | `0x2800–0x2FFF` |
+| `configuration` | `0x3000–0x37FF` |
+| `diagnostic` | `0x3800–0x3FFF` |
+
+Automatic objects are sorted by qualified name. CanOpenGen computes unsigned IEEE
+CRC-32 over the UTF-8 key `<category>:<qualified-name>`, maps it into the category
+range, and linearly probes with wraparound until it finds a free index. All explicit
+indexes are validated and reserved first. Records apply the same approach to fields in
+subindices `0x01–0xFE`; arrays always use sequential subindices.
+
+No persistent allocation lock exists. The same complete configuration always produces
+the same map, while a semantic configuration change may change addresses in a collision
+chain. Use an explicit index or subindex where strict stability is required.
+
+Inspect the public CRC32 inputs independently:
+
+```bash
+canopengen address PressureSensor.pressure --category telemetry
+canopengen address PressureSensor.pressure --category telemetry \
+  --config Device/PressureSensor.yml
+```
 
 Development follows short-lived branches into `develop`, Conventional Commits, and
 Semantic Versioning. See the [development workflow](docs/wiki/Development-Workflow.md)
@@ -76,8 +107,9 @@ and [architecture plan](docs/wiki/Architecture.md).
 
 ## Project status
 
-Repository infrastructure and Phase 1 raw parsing are implemented. Phase 2 adds
-deterministic CRC32 address allocation. The first stable release will be `v1.0.0` only
-after the complete YAML-to-Eds2Od pipeline and its acceptance suite pass.
+Repository infrastructure, Phase 1 parsing, and Phase 2 deterministic address
+allocation are implemented. Phase 3 resolves aliases and enums. The first stable
+release will be `v1.0.0` only after the complete YAML-to-Eds2Od pipeline and its
+acceptance suite pass.
 
 CanOpenGen is licensed under the [Apache License 2.0](LICENSE).

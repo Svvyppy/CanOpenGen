@@ -1,7 +1,7 @@
 # Getting Started
 
-CanOpenGen currently supports structural schema-v1 validation on Linux with Python
-3.11 or newer. From a checkout:
+CanOpenGen currently supports schema-v1 validation and deterministic device-local
+address allocation on Linux with Python 3.11 or newer. From a checkout:
 
 ```bash
 python3 -m venv .venv
@@ -9,9 +9,10 @@ python3 -m venv .venv
 python -m pip install -e '.[dev]'
 canopengen validate Device/PressureSensor.yml
 canopengen validate-all
+canopengen map Device/PressureSensor.yml
 ```
 
-`validate` currently proves that YAML syntax and public structure are valid and builds
-the raw internal representation. It does not yet resolve imported modules, custom type
-bases, references, addresses, or PDO payloads. Those semantic checks arrive in later
-phases without changing the schema-v1 command shape.
+`validate` checks YAML structure plus currently available address semantics. `map`
+shows allocated device-local objects and address provenance. Imported modules, custom
+type bases, references, and PDO payloads are not resolved yet; those semantic checks
+arrive in later phases without changing the schema-v1 command shape.

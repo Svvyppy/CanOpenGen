@@ -1,6 +1,6 @@
 # CLI Reference
 
-## Available in Phase 1
+## Validation
 
 ```bash
 canopengen validate Device/PressureSensor.yml
@@ -10,11 +10,33 @@ canopengen validate-all --project-root path/to/project
 
 `validate` parses one Device or Module file. `validate-all` discovers
 `Modules/*.yml` followed by `Device/*.yml`. Both return non-zero for malformed YAML,
-unsupported schema versions, or JSON Schema violations. Output explicitly labels this
-as structural validation until semantic resolver stages are added.
+unsupported schema versions, JSON Schema violations, invalid manual addresses,
+collisions, or address-space exhaustion. Until module resolution is implemented, each
+definition's local objects are allocated independently.
 
-## Reserved command shape
+## Address map
 
-`generate`, `map`, and `address` are registered so their public argument shape can grow
-incrementally, but currently fail with a diagnostic naming the implementation phase.
-They do not produce placeholder artifacts or invented address results.
+```bash
+canopengen map Device/PressureSensor.yml
+```
+
+The map groups final indexes by category and displays record/array subindices, raw type
+names, access, explicit/automatic provenance, and non-zero probe distances. Imported
+module objects are explicitly omitted until Phase 4.
+
+## Address diagnostics
+
+```bash
+canopengen address PressureSensor.pressure --category telemetry
+canopengen address PressureSensor.pressure --category telemetry \
+  --config Device/PressureSensor.yml
+```
+
+Without a configuration, output shows the canonical hash key, CRC32, range, initial
+slot, and initial index. Complete context additionally shows the final index,
+allocation source, and probe distance.
+
+## Reserved command
+
+`generate` remains registered but fails with a diagnostic naming the Phase 5
+EDS/Eds2Od implementation boundary. It does not produce placeholder artifacts.
