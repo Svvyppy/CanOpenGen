@@ -30,9 +30,8 @@ DeviceDefinition / ModuleDefinition
 qualified name, and exactly one valid variable/record/array shape. Record fields retain
 explicit subindices. `PdoDefinition` preserves symbolic mapping order.
 
-Primitive aliases and their CANopen names, widths, integer ranges, and PDO-mappability
-live in one registry. Numeric EDS datatype identifiers are intentionally deferred until
-the bundled Eds2Od source is inspected.
+Primitive aliases and their CANopen names, CiA 306 numeric EDS codes, widths, integer
+ranges, and PDO-mappability live in one registry.
 
 The raw IR is structurally valid but unresolved. It intentionally contains module
 names, custom base names, symbolic references, and absent automatic addresses. Later
@@ -107,3 +106,18 @@ sequential element entries; records produce reserved count and allocated field e
 Phase 2 operates on a supplied complete object sequence and has no module-loading
 knowledge. The CLI passes the Phase 4 graph's complete transitive object set into the
 same allocator.
+
+## Phase 5 EDS backend
+
+`generate_eds()` accepts only the complete `AllocatedObjectDictionary` and
+`ResolvedDefinitionTypes`, not YAML mappings. It renders deterministic CiA 306 sections:
+
+```text
+variable  -> [INDEX] with DataType / AccessType
+record    -> [INDEX] ObjectType=0x9 and [INDEXsubN] leaves
+array     -> [INDEX] ObjectType=0x8 and [INDEXsubN] leaves
+```
+
+`run_eds2od()` is the isolated process boundary. It invokes the bundled tool with the
+EDS and `<device>Od.cpp/.hpp` output paths, captures both streams, checks its exit
+status, and verifies both artifacts exist before returning to the CLI.

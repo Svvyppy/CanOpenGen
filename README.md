@@ -6,9 +6,10 @@ become the single source of truth for validation, deterministic address allocati
 EDS generation, Markdown documentation, and CANoopEn C++ generation through Eds2Od.
 
 > [!NOTE]
-> Phase 4 provides schema-v1 parsing, recursive module/type/reference resolution, and
-> deterministic complete-device address allocation. PDO payload validation and output
-> generation are not implemented yet.
+> Phase 5 provides schema-v1 parsing, recursive module/type/reference resolution,
+> deterministic complete-device allocation, CiA 306 EDS generation, and CANoopEn C++
+> Object Dictionary generation through Eds2Od. Markdown and PDO payload generation are
+> still separate later phases.
 
 ## Planned pipeline
 
@@ -41,6 +42,7 @@ python3 -m venv .venv
 . .venv/bin/activate
 python -m pip install --upgrade pip
 python -m pip install -e '.[dev]'
+git submodule update --init --recursive
 ```
 
 Run the bootstrap checks with:
@@ -65,6 +67,7 @@ deterministic automatic allocation:
 canopengen validate Device/PressureSensor.yml
 canopengen validate-all
 canopengen map Device/PressureSensor.yml
+canopengen generate Device/PressureSensor.yml --output build/canopen
 ```
 
 The example project demonstrates nested imports, equal transitive dependency
@@ -72,6 +75,23 @@ deduplication, scalar parameter plumbing, imported aliases, enums, variables, a 
 an array, manual addresses, and local/qualified TPDO/RPDO references. The map includes
 the complete transitive module object set. PDO bit-width and direction validation stay
 in the dedicated PDO phase.
+
+## EDS and CANoopEn output
+
+`generate` consumes only the fully resolved and allocated Object Dictionary. It writes
+`<device>.eds`, then invokes the bundled CANoopEnTools `Eds2Od` to write
+`<device>Od.hpp` and `<device>Od.cpp` under the supplied output directory:
+
+```bash
+canopengen generate Device/PressureSensor.yml --output build/canopen
+```
+
+The EDS backend uses CiA 306 numeric types and the exact Eds2Od leaf-section contract:
+variables use `[INDEX]`; records and arrays use a container plus `[INDEXsubN]` entries.
+Aliases and enums lower to their standard storage primitive. The repository contains a
+golden EDS and CI requires the real bundled tool to accept the reference device.
+The bundled source project requires .NET SDK 10 when a native Eds2Od release binary is
+not present.
 
 The public IDE schema is [schemas/canopengen.schema.json](schemas/canopengen.schema.json).
 
@@ -151,8 +171,8 @@ and [architecture plan](docs/wiki/Architecture.md).
 ## Project status
 
 Repository infrastructure, parsing, deterministic address allocation, alias/enum
-lowering, and Phase 4 recursive module/reference resolution are implemented. Phase 5
-adds the EDS backend and real Eds2Od integration. The first stable release will be
+lowering, recursive module/reference resolution, and Phase 5 EDS/Eds2Od generation are
+implemented. Phase 6 adds Markdown documentation. The first stable release will be
 `v1.0.0` only after the complete YAML-to-Eds2Od pipeline and its acceptance suite pass.
 
 CanOpenGen is licensed under the [Apache License 2.0](LICENSE).

@@ -39,7 +39,17 @@ Without a configuration, output shows the canonical hash key, CRC32, range, init
 slot, and initial index. Complete context additionally loads the module closure and
 shows the final index, allocation source, and probe distance.
 
-## Reserved command
+## Generation
 
-`generate` remains registered but fails with a diagnostic naming the Phase 5
-EDS/Eds2Od implementation boundary. It does not produce placeholder artifacts.
+```bash
+canopengen generate Device/PressureSensor.yml --output build/canopen
+```
+
+Generation loads the complete device/module graph, resolves types and references,
+allocates addresses, writes `<device>.eds`, and invokes the bundled CANoopEn Eds2Od to
+write `<device>Od.hpp` and `<device>Od.cpp`. All artifacts stay in `--output`.
+
+The default runner first uses a bundled native Eds2Od binary when available, otherwise
+the bundled .NET project. Set `CANOPENGEN_EDS2OD` or pass `--eds2od path/to/Eds2Od` to
+select an explicit executable. Tool failures include the captured output and return a
+non-zero command result.

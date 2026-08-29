@@ -2,7 +2,7 @@
 
 The project uses pytest for unit, integration, fixture, and golden-output tests. Ruff
 checks formatting and lint rules, mypy checks static types, and Doxygen warnings fail
-the documentation build. Integration coverage will execute the real bundled Eds2Od.
+the documentation build. Integration coverage executes the real bundled Eds2Od in CI.
 
 Phase 1 unit tests cover primitives, all four category partitions, variables, records,
 arrays, manual index/subindex parsing, aliases, enums, module namespace identity,
@@ -26,6 +26,12 @@ deduplication, direct duplicate rejection, scalar parameter retention/conflicts,
 missing modules, complete dependency cycles, same object keys in different modules,
 local-first lookup, imported and qualified custom types, qualified PDO references, and
 ambiguous reference diagnostics. The OD map golden now includes imported objects.
+
+Phase 5 locks the complete reference EDS as a golden file, checks CiA 306 primitive
+codes plus variable/record/array lowering, verifies CLI artifact placement and runner
+failure diagnostics, and executes the actual bundled Eds2Od against the generated
+`PressureSensor.eds`. The dedicated CI job installs .NET SDK 10, initializes the tool
+submodule, generates the example, and runs that acceptance test.
 
 Local commands are listed in the repository README. CI runs the same checks on
 supported Python versions.
