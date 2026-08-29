@@ -1,0 +1,74 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - develop
+      - main
+  pull_request:
+    branches:
+      - develop
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  python:
+    name: Python ${{ matrix.python-version }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version:
+          - "3.11"
+          - "3.12"
+          - "3.13"
+          - "3.14"
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+
+      - name: Install development dependencies
+        run: python -m pip install --upgrade pip && python -m pip install -e '.[dev]'
+
+      - name: Check formatting
+        run: python -m ruff format --check .
+
+      - name: Lint
+        run: python -m ruff check .
+
+      - name: Type check
+        run: python -m mypy
+
+      - name: Test
+        run: python -m pytest
+
+      - name: Build package
+        if: matrix.python-version == '3.14'
+        run: python -m build
+
+  documentation:
+    name: Doxygen
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install Doxygen
+        run: sudo apt-get update && sudo apt-get install --yes doxygen
+
+      - name: Configure documentation target
+        run: cmake -S . -B build
+
+      - name: Build documentation
+        run: cmake --build build --target docs
+
