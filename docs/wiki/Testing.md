@@ -33,5 +33,10 @@ failure diagnostics, and executes the actual bundled Eds2Od against the generate
 `PressureSensor.eds`. The dedicated CI job installs .NET SDK 10, initializes the tool
 submodule, generates the example, and runs that acceptance test.
 
+Phase 6 locks the complete reference device Markdown as a golden file and checks that
+module metadata, imported objects, record/array subobjects, enum values, allocation
+provenance, and PDO mapping widths come from resolved IR. The CLI test requires
+`generate` to place the Markdown file beside the EDS and Eds2Od C++ artifacts.
+
 Local commands are listed in the repository README. CI runs the same checks on
 supported Python versions.

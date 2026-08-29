@@ -46,8 +46,11 @@ canopengen generate Device/PressureSensor.yml --output build/canopen
 ```
 
 Generation loads the complete device/module graph, resolves types and references,
-allocates addresses, writes `<device>.eds`, and invokes the bundled CANoopEn Eds2Od to
-write `<device>Od.hpp` and `<device>Od.cpp`. All artifacts stay in `--output`.
+allocates addresses, writes `<device>.eds` and `<device>.md`, and invokes the bundled
+CANoopEn Eds2Od to write `<device>Od.hpp` and `<device>Od.cpp`. All artifacts stay in
+`--output`. The Markdown document contains the resolved module closure, complete Object
+Dictionary with address/allocation provenance, custom types and enum values, and
+resolved PDO mapping descriptions.
 
 The default runner first uses a bundled native Eds2Od binary when available, otherwise
 the bundled .NET project. Set `CANOPENGEN_EDS2OD` or pass `--eds2od path/to/Eds2Od` to

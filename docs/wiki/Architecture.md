@@ -121,3 +121,12 @@ array     -> [INDEX] ObjectType=0x8 and [INDEXsubN] leaves
 `run_eds2od()` is the isolated process boundary. It invokes the bundled tool with the
 EDS and `<device>Od.cpp/.hpp` output paths, captures both streams, checks its exit
 status, and verifies both artifacts exist before returning to the CLI.
+
+## Phase 6 Markdown backend
+
+`generate_markdown()` receives the same root device, module graph, allocated dictionary,
+resolved type metadata, and resolved symbolic PDO references used by the other outputs.
+It does not reconstruct technical metadata from prose. One deterministic document lists
+every object/subobject, its final address and allocation source, primitive/custom type,
+access, descriptive text, custom aliases/enums, module dependencies, and PDO mapping
+widths where scalar sizes are known.

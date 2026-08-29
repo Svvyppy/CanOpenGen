@@ -6,10 +6,10 @@ become the single source of truth for validation, deterministic address allocati
 EDS generation, Markdown documentation, and CANoopEn C++ generation through Eds2Od.
 
 > [!NOTE]
-> Phase 5 provides schema-v1 parsing, recursive module/type/reference resolution,
+> Phase 6 provides schema-v1 parsing, recursive module/type/reference resolution,
 > deterministic complete-device allocation, CiA 306 EDS generation, and CANoopEn C++
-> Object Dictionary generation through Eds2Od. Markdown and PDO payload generation are
-> still separate later phases.
+> Object Dictionary generation through Eds2Od, plus complete resolved-device Markdown
+> documentation. PDO payload generation remains a separate later phase.
 
 ## Planned pipeline
 
@@ -79,7 +79,7 @@ in the dedicated PDO phase.
 ## EDS and CANoopEn output
 
 `generate` consumes only the fully resolved and allocated Object Dictionary. It writes
-`<device>.eds`, then invokes the bundled CANoopEnTools `Eds2Od` to write
+`<device>.eds` and `<device>.md`, then invokes the bundled CANoopEnTools `Eds2Od` to write
 `<device>Od.hpp` and `<device>Od.cpp` under the supplied output directory:
 
 ```bash
@@ -92,6 +92,10 @@ Aliases and enums lower to their standard storage primitive. The repository cont
 golden EDS and CI requires the real bundled tool to accept the reference device.
 The bundled source project requires .NET SDK 10 when a native Eds2Od release binary is
 not present.
+
+The Markdown document is generated from the same resolved Object Dictionary. It records
+the module graph, every object and subobject address, resolved/custom types, access,
+allocation provenance, descriptions, enum values, and resolved PDO mappings.
 
 The public IDE schema is [schemas/canopengen.schema.json](schemas/canopengen.schema.json).
 
