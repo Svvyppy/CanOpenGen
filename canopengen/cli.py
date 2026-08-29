@@ -19,21 +19,21 @@ from canopengen.model import (
 )
 from canopengen.odmap import format_address_diagnostic, format_object_dictionary_map
 from canopengen.parser import parse_definition, parse_device
-from canopengen.type_resolver import resolve_definition_types
+from canopengen.resolver import resolve_modules, resolve_pdo_references
+from canopengen.type_resolver import resolve_module_graph_types
 
 
 def _resolve_definition(
     definition: DeviceDefinition | ModuleDefinition,
 ) -> tuple[ResolvedDefinitionTypes, AllocatedObjectDictionary]:
-    """Resolve types and addresses for one parsed definition."""
-    namespace = (
-        definition.name if isinstance(definition, DeviceDefinition) else definition.namespace
-    )
-    resolved_types = resolve_definition_types(definition)
+    """Resolve modules, types, references, and addresses for one definition."""
+    graph = resolve_modules(definition)
+    resolved_types = resolve_module_graph_types(graph)
     try:
-        dictionary = allocate_object_dictionary(namespace, definition.objects)
+        dictionary = allocate_object_dictionary(graph.namespace, graph.objects)
     except AllocationError as error:
         raise AllocationError(f"{definition.source_path}: {error}") from error
+    resolve_pdo_references(graph)
     return resolved_types, dictionary
 
 
@@ -43,7 +43,10 @@ def _validate(arguments: argparse.Namespace) -> int:
     definition = parse_definition(path)
     _resolve_definition(definition)
     kind = "device" if isinstance(definition, DeviceDefinition) else "module"
-    print(f"{path}: OK ({kind}, schema {definition.schema_version}; type/address validation)")
+    print(
+        f"{path}: OK ({kind}, schema {definition.schema_version}; "
+        "module/type/reference/address validation)"
+    )
     return 0
 
 
@@ -58,7 +61,9 @@ def _validate_all(arguments: argparse.Namespace) -> int:
     """Run all currently available validation for project YAML files."""
     project_root = cast(Path, arguments.project_root)
     paths = _project_yaml_files(project_root)
-    print("Validating CanOpenGen project (schema, type, and address validation)...")
+    print(
+        "Validating CanOpenGen project (schema, module, type, reference, and address validation)..."
+    )
     failures = 0
     for path in paths:
         try:
@@ -88,12 +93,10 @@ def _unavailable(arguments: argparse.Namespace) -> int:
 
 
 def _map(arguments: argparse.Namespace) -> int:
-    """Allocate and print device-local Object Dictionary addresses."""
+    """Allocate and print the complete device and imported-module dictionary."""
     device = parse_device(cast(Path, arguments.config))
     resolved_types, dictionary = _resolve_definition(device)
     print(format_object_dictionary_map(dictionary, resolved_types), end="")
-    if device.imports:
-        print("Note: imported module objects will be included after Phase 4 resolution.")
     return 0
 
 

@@ -84,9 +84,9 @@ pdo:
       mapping:
         - pressure
         - state
+        - Diagnostics.supply_voltage
 
   rpdo:
     commands:
       mapping:
         - reset
-

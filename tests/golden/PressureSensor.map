@@ -26,4 +26,6 @@ Configuration
 
 Diagnostics
 ------------------------------------------------------------------------
-(none)
+0x3AC1:00  supply_voltage           uint16                   ro  [auto, crc32]
+0x3DA3:00  firmware_version         uint32 (FirmwareVersion) ro  [auto, crc32]
+0x3DF8:00  error_count              uint32                   ro  [auto, crc32]

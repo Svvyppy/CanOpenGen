@@ -21,7 +21,12 @@ from canopengen.model.object import (
     ObjectKind,
     SubObjectDefinition,
 )
-from canopengen.model.pdo import PdoDefinition, PdoDirection
+from canopengen.model.pdo import (
+    PdoDefinition,
+    PdoDirection,
+    ResolvedObjectReference,
+    ResolvedPdoDefinition,
+)
 from canopengen.model.resolved import (
     AddressDiagnostic,
     AddressSource,
@@ -30,6 +35,7 @@ from canopengen.model.resolved import (
     AllocatedSubObject,
     SubObjectRole,
 )
+from canopengen.model.resolved_module import ResolvedModule, ResolvedModuleGraph
 from canopengen.model.resolved_type import (
     ResolvedCustomType,
     ResolvedDataType,
@@ -62,7 +68,11 @@ __all__ = [
     "ResolvedCustomType",
     "ResolvedDataType",
     "ResolvedDefinitionTypes",
+    "ResolvedModule",
+    "ResolvedModuleGraph",
+    "ResolvedObjectReference",
     "ResolvedObjectType",
+    "ResolvedPdoDefinition",
     "ResolvedSubObjectType",
     "SubObjectDefinition",
     "SubObjectRole",

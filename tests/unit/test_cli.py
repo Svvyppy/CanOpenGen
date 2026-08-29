@@ -15,7 +15,7 @@ def test_validate_command(capsys: pytest.CaptureFixture[str]) -> None:
 
     output = capsys.readouterr()
     assert result == 0
-    assert "OK (device, schema 1; type/address validation)" in output.out
+    assert "module/type/reference/address validation" in output.out
     assert not output.err
 
 
@@ -113,7 +113,7 @@ def test_generate_command_is_visible_but_fails_clearly(
 
 
 def test_map_command(capsys: pytest.CaptureFixture[str]) -> None:
-    """The map command displays final device-local addresses and provenance."""
+    """The map command displays device and imported-module objects."""
     result = main(["map", str(PROJECT_ROOT / "Device" / "PressureSensor.yml")])
 
     output = capsys.readouterr()
@@ -122,7 +122,9 @@ def test_map_command(capsys: pytest.CaptureFixture[str]) -> None:
     assert "0x2200:00  pressure                 uint32 (Pressure)" in output.out
     assert "0x3129:01    offset" in output.out
     assert "[auto, crc32]" in output.out
-    assert "imported module objects will be included after Phase 4" in output.out
+    assert "supply_voltage" in output.out
+    assert "firmware_version" in output.out
+    assert "uint32 (FirmwareVersion)" in output.out
 
 
 def test_address_command_without_context(capsys: pytest.CaptureFixture[str]) -> None:
