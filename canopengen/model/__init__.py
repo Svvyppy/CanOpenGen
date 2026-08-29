@@ -30,6 +30,13 @@ from canopengen.model.resolved import (
     AllocatedSubObject,
     SubObjectRole,
 )
+from canopengen.model.resolved_type import (
+    ResolvedCustomType,
+    ResolvedDataType,
+    ResolvedDefinitionTypes,
+    ResolvedObjectType,
+    ResolvedSubObjectType,
+)
 
 __all__ = [
     "PRIMITIVE_TYPES",
@@ -52,6 +59,11 @@ __all__ = [
     "PdoDefinition",
     "PdoDirection",
     "PrimitiveDataType",
+    "ResolvedCustomType",
+    "ResolvedDataType",
+    "ResolvedDefinitionTypes",
+    "ResolvedObjectType",
+    "ResolvedSubObjectType",
     "SubObjectDefinition",
     "SubObjectRole",
     "get_primitive",
