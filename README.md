@@ -6,10 +6,10 @@ become the single source of truth for validation, deterministic address allocati
 EDS generation, Markdown documentation, and CANoopEn C++ generation through Eds2Od.
 
 > [!NOTE]
-> Phase 6 provides schema-v1 parsing, recursive module/type/reference resolution,
+> The MVP pipeline provides schema-v1 parsing, recursive module/type/reference resolution,
 > deterministic complete-device allocation, CiA 306 EDS generation, and CANoopEn C++
 > Object Dictionary generation through Eds2Od, plus complete resolved-device Markdown
-> documentation. PDO payload generation remains a separate later phase.
+> documentation, classic TPDO/RPDO validation, and CMake build-graph integration.
 
 ## Planned pipeline
 
@@ -73,8 +73,8 @@ canopengen generate Device/PressureSensor.yml --output build/canopen
 The example project demonstrates nested imports, equal transitive dependency
 deduplication, scalar parameter plumbing, imported aliases, enums, variables, a record,
 an array, manual addresses, and local/qualified TPDO/RPDO references. The map includes
-the complete transitive module object set. PDO bit-width and direction validation stay
-in the dedicated PDO phase.
+the complete transitive module object set. PDO mappings are validated against access,
+mappability, and the classic 64-bit payload limit.
 
 ## EDS and CANoopEn output
 
@@ -175,8 +175,7 @@ and [architecture plan](docs/wiki/Architecture.md).
 ## Project status
 
 Repository infrastructure, parsing, deterministic address allocation, alias/enum
-lowering, recursive module/reference resolution, and Phase 5 EDS/Eds2Od generation are
-implemented. Phase 6 adds Markdown documentation. The first stable release will be
-`v1.0.0` only after the complete YAML-to-Eds2Od pipeline and its acceptance suite pass.
+lowering, recursive module/reference resolution, EDS/Eds2Od output, Markdown, PDO
+mapping validation, and CMake generation are implemented.
 
 CanOpenGen is licensed under the [Apache License 2.0](LICENSE).

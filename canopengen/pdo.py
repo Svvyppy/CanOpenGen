@@ -4,7 +4,9 @@ from __future__ import annotations
 
 from canopengen.errors import PdoValidationError
 from canopengen.model import (
+    Access,
     AllocatedObjectDictionary,
+    PdoDirection,
     PdoMappingEntry,
     ResolvedDefinitionTypes,
     ResolvedPdoDefinition,
@@ -27,6 +29,7 @@ def _entry_for_reference(
         if allocated.definition.qualified_name == qualified_name:
             datatype = resolved.datatype
             subindex = 0
+            access = allocated.definition.access
         else:
             subobject = next(
                 (entry for entry in allocated.subobjects if entry.qualified_name == qualified_name),
@@ -42,6 +45,17 @@ def _entry_for_reference(
                 field = resolved.field_by_qualified_name(qualified_name)
                 datatype = field.datatype if field is not None else None
             subindex = subobject.subindex
+            access = subobject.access
+        if access is None:
+            raise PdoValidationError(f"PDO '{pdo.definition.key}' cannot map a container object")
+        if pdo.definition.direction is PdoDirection.TRANSMIT and access is Access.WRITE_ONLY:
+            raise PdoValidationError(
+                f"TPDO '{pdo.definition.key}' maps write-only object '{qualified_name}'"
+            )
+        if pdo.definition.direction is PdoDirection.RECEIVE and access is Access.READ_ONLY:
+            raise PdoValidationError(
+                f"RPDO '{pdo.definition.key}' maps read-only object '{qualified_name}'"
+            )
         if (
             datatype is None
             or datatype.primitive.bit_width is None
