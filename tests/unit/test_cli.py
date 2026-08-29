@@ -15,7 +15,7 @@ def test_validate_command(capsys: pytest.CaptureFixture[str]) -> None:
 
     output = capsys.readouterr()
     assert result == 0
-    assert "OK (device, schema 1; address validation)" in output.out
+    assert "OK (device, schema 1; type/address validation)" in output.out
     assert not output.err
 
 
@@ -74,6 +74,33 @@ objects:
     assert "outside telemetry range" in output.err
 
 
+def test_validate_command_runs_type_resolution(
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """Phase 3 validation rejects unknown object datatypes contextually."""
+    path = tmp_path / "UnknownType.yml"
+    path.write_text(
+        """schema: 1
+device:
+  name: UnknownType
+objects:
+  value:
+    category: telemetry
+    type: Missing
+    access: ro
+""",
+        encoding="utf-8",
+    )
+
+    result = main(["validate", str(path)])
+
+    output = capsys.readouterr()
+    assert result == 1
+    assert str(path) in output.err
+    assert "object 'UnknownType.value' references unknown datatype 'Missing'" in output.err
+
+
 def test_generate_command_is_visible_but_fails_clearly(
     capsys: pytest.CaptureFixture[str],
 ) -> None:
@@ -92,7 +119,7 @@ def test_map_command(capsys: pytest.CaptureFixture[str]) -> None:
     output = capsys.readouterr()
     assert result == 0
     assert "PressureSensor Object Dictionary" in output.out
-    assert "0x2200:00  pressure" in output.out
+    assert "0x2200:00  pressure                 uint32 (Pressure)" in output.out
     assert "0x3129:01    offset" in output.out
     assert "[auto, crc32]" in output.out
     assert "imported module objects will be included after Phase 4" in output.out

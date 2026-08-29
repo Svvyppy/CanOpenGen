@@ -11,8 +11,7 @@ modules:
 objects:
   firmware_version:
     category: diagnostic
-    type: FirmwareVersion
+    type: uint32
     access: ro
     info: |
       Packed firmware version.
-
