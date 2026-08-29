@@ -1,0 +1,55 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-main
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Semantic release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out stable branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+          cache: pip
+
+      - name: Install release dependencies
+        run: >-
+          python -m pip install --upgrade pip
+          && python -m pip install -e '.[dev]'
+          'python-semantic-release>=10,<11'
+
+      - name: Verify stable branch
+        run: >-
+          python -m ruff format --check .
+          && python -m ruff check .
+          && python -m mypy
+          && python -m pytest
+          && python -m build
+
+      - name: Determine version and create tag
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: semantic-release version
+
+      - name: Publish GitHub release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: semantic-release publish
+

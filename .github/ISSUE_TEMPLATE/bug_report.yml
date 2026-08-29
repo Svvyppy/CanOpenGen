@@ -1,0 +1,62 @@
+name: Bug report
+description: Report reproducible incorrect behavior in CanOpenGen.
+title: "bug: "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: Thank you for helping improve CanOpenGen.
+
+  - type: input
+    id: version
+    attributes:
+      label: CanOpenGen version
+      description: Provide a release tag or commit hash.
+      placeholder: v0.1.0 or 0123abc
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Include operating system, Python, CMake, and Eds2Od details as relevant.
+    validations:
+      required: true
+
+  - type: textarea
+    id: yaml
+    attributes:
+      label: Input YAML
+      description: Provide the smallest Device/Module YAML that reproduces the problem.
+      render: yaml
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected result
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual result
+    validations:
+      required: true
+
+  - type: textarea
+    id: output
+    attributes:
+      label: Error output
+      description: Paste the complete relevant diagnostic output.
+      render: text
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+

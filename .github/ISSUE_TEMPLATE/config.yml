@@ -1,0 +1,6 @@
+blank_issues_enabled: false
+contact_links:
+  - name: CanOpenGen documentation
+    url: https://github.com/Svvyppy/CanOpenGen/wiki
+    about: Review the user and development documentation before filing an issue.
+
