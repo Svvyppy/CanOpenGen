@@ -1,0 +1,3 @@
+[submodule "third_party/Eds2Od"]
+	path = third_party/Eds2Od
+	url = https://github.com/xyntos-ch/CANoopEnTools.git

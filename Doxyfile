@@ -1,0 +1,28 @@
+PROJECT_NAME           = "CanOpenGen"
+PROJECT_BRIEF          = "Declarative CANopen Object Dictionary generator"
+OUTPUT_DIRECTORY       = "@CANOPENGEN_DOXYGEN_OUTPUT_DIR@"
+
+INPUT                  = "@CMAKE_CURRENT_SOURCE_DIR@/canopengen"
+FILE_PATTERNS           = *.py
+RECURSIVE               = YES
+EXCLUDE_PATTERNS        = */__pycache__/*
+
+EXTRACT_ALL             = YES
+EXTRACT_PRIVATE         = NO
+EXTRACT_STATIC          = NO
+OPTIMIZE_OUTPUT_JAVA    = YES
+PYTHON_DOCSTRING        = YES
+
+GENERATE_HTML           = YES
+HTML_OUTPUT             = html
+GENERATE_LATEX          = NO
+HAVE_DOT                = NO
+
+QUIET                   = YES
+WARNINGS                = YES
+WARN_IF_UNDOCUMENTED    = YES
+WARN_IF_DOC_ERROR       = YES
+WARN_AS_ERROR           = YES
+
+MARKDOWN_SUPPORT        = YES
+AUTOLINK_SUPPORT        = YES

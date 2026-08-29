@@ -1,0 +1,355 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Svvyppy/CanOpenGen/schemas/canopengen.schema.json",
+  "title": "CanOpenGen schema v1",
+  "description": "Device and reusable module declarations for CanOpenGen.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema"
+  ],
+  "properties": {
+    "schema": {
+      "const": 1,
+      "description": "Public CanOpenGen YAML schema version."
+    },
+    "device": {
+      "$ref": "#/$defs/deviceMetadata"
+    },
+    "module": {
+      "$ref": "#/$defs/moduleMetadata"
+    },
+    "modules": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/moduleImport"
+      }
+    },
+    "types": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/$defs/typeDefinition"
+      }
+    },
+    "objects": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/$defs/objectDefinition"
+      }
+    },
+    "pdo": {
+      "$ref": "#/$defs/pdoContainer"
+    }
+  },
+  "oneOf": [
+    {
+      "required": [
+        "device"
+      ],
+      "not": {
+        "required": [
+          "module"
+        ]
+      }
+    },
+    {
+      "required": [
+        "module"
+      ],
+      "not": {
+        "required": [
+          "device"
+        ]
+      }
+    }
+  ],
+  "$defs": {
+    "nonEmptyString": {
+      "type": "string",
+      "minLength": 1
+    },
+    "info": {
+      "type": "string"
+    },
+    "deviceMetadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name"
+      ],
+      "properties": {
+        "name": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "info": {
+          "$ref": "#/$defs/info"
+        }
+      }
+    },
+    "moduleMetadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name"
+      ],
+      "properties": {
+        "name": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "info": {
+          "$ref": "#/$defs/info"
+        }
+      }
+    },
+    "parameterValue": {
+      "type": [
+        "string",
+        "number",
+        "integer",
+        "boolean",
+        "null"
+      ]
+    },
+    "moduleImport": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "name"
+          ],
+          "properties": {
+            "name": {
+              "$ref": "#/$defs/nonEmptyString"
+            },
+            "params": {
+              "type": "object",
+              "additionalProperties": {
+                "$ref": "#/$defs/parameterValue"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "typeDefinition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "base"
+      ],
+      "properties": {
+        "base": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "enum": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {
+            "type": "integer"
+          }
+        }
+      }
+    },
+    "category": {
+      "enum": [
+        "telemetry",
+        "command",
+        "configuration",
+        "diagnostic"
+      ]
+    },
+    "access": {
+      "enum": [
+        "ro",
+        "wo",
+        "rw"
+      ]
+    },
+    "recordField": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "access"
+      ],
+      "properties": {
+        "type": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "access": {
+          "$ref": "#/$defs/access"
+        },
+        "info": {
+          "$ref": "#/$defs/info"
+        },
+        "subindex": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 254
+        }
+      }
+    },
+    "objectDefinition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "category",
+        "type"
+      ],
+      "properties": {
+        "category": {
+          "$ref": "#/$defs/category"
+        },
+        "type": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "access": {
+          "$ref": "#/$defs/access"
+        },
+        "info": {
+          "$ref": "#/$defs/info"
+        },
+        "index": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 65535
+        },
+        "fields": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {
+            "$ref": "#/$defs/recordField"
+          }
+        },
+        "item_type": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "length": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 255
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "record"
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "required": [
+              "fields"
+            ],
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "item_type"
+                  ]
+                },
+                {
+                  "required": [
+                    "length"
+                  ]
+                }
+              ]
+            }
+          },
+          "else": {
+            "if": {
+              "properties": {
+                "type": {
+                  "const": "array"
+                }
+              },
+              "required": [
+                "type"
+              ]
+            },
+            "then": {
+              "required": [
+                "access",
+                "item_type",
+                "length"
+              ],
+              "not": {
+                "required": [
+                  "fields"
+                ]
+              }
+            },
+            "else": {
+              "required": [
+                "access"
+              ],
+              "not": {
+                "anyOf": [
+                  {
+                    "required": [
+                      "fields"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "item_type"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "length"
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        }
+      ]
+    },
+    "pdoDefinition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mapping"
+      ],
+      "properties": {
+        "mapping": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/nonEmptyString"
+          }
+        }
+      }
+    },
+    "pdoGroup": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/$defs/pdoDefinition"
+      }
+    },
+    "pdoContainer": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "tpdo": {
+          "$ref": "#/$defs/pdoGroup"
+        },
+        "rpdo": {
+          "$ref": "#/$defs/pdoGroup"
+        }
+      },
+      "minProperties": 1
+    }
+  }
+}

@@ -1,0 +1,31 @@
+PressureSensor Object Dictionary
+
+Telemetry
+------------------------------------------------------------------------
+0x20EB:00  samples                  array<uint16>[8]         ro  [auto, crc32]
+0x20EB:01    samples[1]             uint16                   ro  [sequential]
+0x20EB:02    samples[2]             uint16                   ro  [sequential]
+0x20EB:03    samples[3]             uint16                   ro  [sequential]
+0x20EB:04    samples[4]             uint16                   ro  [sequential]
+0x20EB:05    samples[5]             uint16                   ro  [sequential]
+0x20EB:06    samples[6]             uint16                   ro  [sequential]
+0x20EB:07    samples[7]             uint16                   ro  [sequential]
+0x20EB:08    samples[8]             uint16                   ro  [sequential]
+0x2200:00  pressure                 uint32 (Pressure)        ro  [explicit]
+0x24E4:00  state                    uint8 (DeviceState)      ro  [auto, crc32]
+
+Commands
+------------------------------------------------------------------------
+0x2C31:00  reset                    uint8                    wo  [auto, crc32]
+
+Configuration
+------------------------------------------------------------------------
+0x3129:00  calibration              record                   --  [auto, crc32]
+0x3129:01    offset                 int32                    rw  [explicit]
+0x3129:82    scale                  float32                  rw  [auto, crc32]
+
+Diagnostics
+------------------------------------------------------------------------
+0x3AC1:00  supply_voltage           uint16                   ro  [auto, crc32]
+0x3DA3:00  firmware_version         uint32 (FirmwareVersion) ro  [auto, crc32]
+0x3DF8:00  error_count              uint32                   ro  [auto, crc32]

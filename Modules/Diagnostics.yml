@@ -1,0 +1,25 @@
+schema: 1
+
+module:
+  name: Diagnostics
+  info: |
+    Common runtime diagnostic objects.
+
+modules:
+  - CommonTypes
+
+objects:
+  error_count:
+    category: diagnostic
+    type: uint32
+    access: ro
+    info: |
+      Number of errors observed since reset.
+
+  supply_voltage:
+    category: diagnostic
+    type: uint16
+    access: ro
+    info: |
+      Device supply voltage.
+

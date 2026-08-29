@@ -1,0 +1,92 @@
+schema: 1
+
+device:
+  name: PressureSensor
+  info: |
+    Example CANopen pressure sensor.
+
+modules:
+  - CommonTypes
+  - FirmwareInfo
+  - name: Diagnostics
+    params:
+      channel_count: 4
+
+types:
+  RawPressure:
+    base: uint32
+
+  Pressure:
+    base: RawPressure
+
+  DeviceState:
+    base: uint8
+    enum:
+      INIT: 0
+      READY: 1
+      ACTIVE: 2
+      ERROR: 3
+
+objects:
+  pressure:
+    category: telemetry
+    type: Pressure
+    access: ro
+    index: 0x2200
+    info: |
+      Current measured pressure.
+
+  state:
+    category: telemetry
+    type: DeviceState
+    access: ro
+    info: |
+      Current device state.
+
+  reset:
+    category: command
+    type: uint8
+    access: wo
+    info: |
+      Reset command.
+
+  calibration:
+    category: configuration
+    type: record
+    info: |
+      Pressure calibration parameters.
+    fields:
+      offset:
+        type: int32
+        access: rw
+        subindex: 1
+        info: |
+          Calibration offset.
+
+      scale:
+        type: float32
+        access: rw
+        info: |
+          Calibration scale.
+
+  samples:
+    category: telemetry
+    type: array
+    item_type: uint16
+    length: 8
+    access: ro
+    info: |
+      Last eight raw pressure samples.
+
+pdo:
+  tpdo:
+    sensor_data:
+      mapping:
+        - pressure
+        - state
+        - Diagnostics.supply_voltage
+
+  rpdo:
+    commands:
+      mapping:
+        - reset

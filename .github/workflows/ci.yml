@@ -1,0 +1,106 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - develop
+      - main
+  pull_request:
+    branches:
+      - develop
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  python:
+    name: Python ${{ matrix.python-version }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version:
+          - "3.11"
+          - "3.12"
+          - "3.13"
+          - "3.14"
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+
+      - name: Install development dependencies
+        run: python -m pip install --upgrade pip && python -m pip install -e '.[dev]'
+
+      - name: Check formatting
+        run: python -m ruff format --check .
+
+      - name: Lint
+        run: python -m ruff check .
+
+      - name: Type check
+        run: python -m mypy
+
+      - name: Test
+        run: python -m pytest
+
+      - name: Build package
+        if: matrix.python-version == '3.14'
+        run: python -m build
+
+  documentation:
+    name: Doxygen
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install Doxygen
+        run: sudo apt-get update && sudo apt-get install --yes doxygen
+
+      - name: Configure documentation target
+        run: cmake -S . -B build
+
+      - name: Build documentation
+        run: cmake --build build --target docs
+
+  eds2od:
+    name: EDS and Eds2Od
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository and bundled tools
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+          cache: pip
+
+      - name: Set up .NET SDK for Eds2Od
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Install development dependencies
+        run: python -m pip install --upgrade pip && python -m pip install -e '.[dev]'
+
+      - name: Generate the reference CANopen Object Dictionary
+        run: canopengen generate Device/PressureSensor.yml --output build/canopen
+
+      - name: Run real Eds2Od integration test
+        run: python -m pytest tests/integration/test_eds2od_integration.py
+
+      - name: Build the CMake PressureSensor integration
+        run: cmake -S . -B build-cmake -DCANOPENGEN_BUILD_EXAMPLE=ON && cmake --build build-cmake --target PressureSensor_canopen
