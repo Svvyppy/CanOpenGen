@@ -1,0 +1,18 @@
+schema: 1
+
+module:
+  name: Firmware Information
+  info: |
+    Common firmware identification objects.
+
+modules:
+  - CommonTypes
+
+objects:
+  firmware_version:
+    category: diagnostic
+    type: FirmwareVersion
+    access: ro
+    info: |
+      Packed firmware version.
+

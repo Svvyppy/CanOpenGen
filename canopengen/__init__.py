@@ -1,8 +1,4 @@
-"""CanOpenGen package.
-
-The public implementation will be introduced incrementally. This module only
-exposes package metadata during repository bootstrap.
-"""
+"""Declarative CANopen Object Dictionary generation from versioned YAML."""
 
 __all__ = ["__version__"]
 
