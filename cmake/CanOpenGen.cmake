@@ -22,7 +22,7 @@ function(canopen_device)
         OUTPUT ${outputs}
         COMMAND "${CMAKE_COMMAND}" -E make_directory "${output_dir}"
         COMMAND "${CMAKE_COMMAND}" -E env "PYTHONPATH=${CANOPENGEN_SOURCE_DIR}"
-            "${Python3_EXECUTABLE}" -m canopengen generate "${config}" --output "${output_dir}"
+            "${Python3_EXECUTABLE}" -m canopengen.cli generate "${config}" --output "${output_dir}"
         DEPENDS "${config}" ${module_sources} ${generator_sources}
             "${CANOPENGEN_SOURCE_DIR}/schemas/canopengen.schema.json"
             "${CANOPENGEN_SOURCE_DIR}/third_party/Eds2Od/Eds2Od/Eds2Od.csproj"
