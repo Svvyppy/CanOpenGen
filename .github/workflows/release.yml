@@ -48,7 +48,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: >-
           rm -rf dist
-          && semantic-release version
+          && semantic-release version --no-vcs-release
 
       - name: Create GitHub release with distribution assets
         env:

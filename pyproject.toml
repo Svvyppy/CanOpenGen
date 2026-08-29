@@ -104,6 +104,11 @@ prerelease = false
 
 [tool.semantic_release.changelog.default_templates]
 changelog_file = "CHANGELOG.md"
+mask_initial_release = false
+
+[tool.semantic_release.changelog]
+mode = "update"
+insertion_flag = "<!-- version list -->"
 
 [tool.semantic_release.remote]
 name = "origin"
