@@ -50,3 +50,43 @@ class SchemaValidationError(CanOpenGenError):
 
 class CommandUnavailableError(CanOpenGenError):
     """A stable CLI command exists but its implementation belongs to a later phase."""
+
+
+class AllocationError(CanOpenGenError):
+    """Base class for deterministic Object Dictionary allocation failures."""
+
+
+class DuplicateQualifiedNameError(AllocationError):
+    """Two allocation inputs use the same semantic identity."""
+
+
+class ExplicitIndexOutOfRangeError(AllocationError):
+    """An explicit object index is outside its schema-v1 category partition."""
+
+
+class ExplicitIndexCollisionError(AllocationError):
+    """Two explicit object indexes select the same CANopen address."""
+
+
+class IndexRangeExhaustedError(AllocationError):
+    """A category has no remaining automatic index slot."""
+
+
+class ExplicitSubindexOutOfRangeError(AllocationError):
+    """An explicit record field subindex is outside 1 through 254."""
+
+
+class ExplicitSubindexCollisionError(AllocationError):
+    """Two record fields select the same explicit subindex."""
+
+
+class RecordSubindexExhaustedError(AllocationError):
+    """A record contains more fields than its usable subindex space."""
+
+
+class InvalidArrayLengthError(AllocationError):
+    """An array cannot fit in the sequential CANopen subindex space."""
+
+
+class UnknownAddressObjectError(AllocationError):
+    """An address diagnostic context does not contain the requested object."""

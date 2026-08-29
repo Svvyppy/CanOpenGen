@@ -22,10 +22,23 @@ from canopengen.model.object import (
     SubObjectDefinition,
 )
 from canopengen.model.pdo import PdoDefinition, PdoDirection
+from canopengen.model.resolved import (
+    AddressDiagnostic,
+    AddressSource,
+    AllocatedObject,
+    AllocatedObjectDictionary,
+    AllocatedSubObject,
+    SubObjectRole,
+)
 
 __all__ = [
     "PRIMITIVE_TYPES",
     "Access",
+    "AddressDiagnostic",
+    "AddressSource",
+    "AllocatedObject",
+    "AllocatedObjectDictionary",
+    "AllocatedSubObject",
     "CustomTypeDefinition",
     "DeviceDefinition",
     "EnumMember",
@@ -40,5 +53,6 @@ __all__ = [
     "PdoDirection",
     "PrimitiveDataType",
     "SubObjectDefinition",
+    "SubObjectRole",
     "get_primitive",
 ]
