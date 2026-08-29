@@ -2,7 +2,10 @@
 
 from pathlib import Path
 
+import pytest
+
 from canopengen.allocator import allocate_object_dictionary
+from canopengen.errors import PdoValidationError
 from canopengen.parser import parse_device
 from canopengen.pdo import resolve_pdo_mappings
 from canopengen.resolver import resolve_modules, resolve_pdo_references
@@ -25,3 +28,35 @@ def test_pdo_entries_encode_final_addresses_and_exact_payload() -> None:
     assert sensor_data.entries[0].encoding == 0x22000020
     assert sensor_data.entries[1].encoding == 0x24E40008
     assert sensor_data.entries[2].encoding == 0x3AC10010
+
+
+def test_pdo_rejects_payloads_larger_than_64_bits(tmp_path: Path) -> None:
+    """Diagnostics identify the offending PDO and its resolved bit budget."""
+    config = tmp_path / "TooLarge.yml"
+    config.write_text(
+        "\n".join(
+            (
+                "schema: 1",
+                "device:",
+                "  name: TooLarge",
+                "objects:",
+                "  first: {category: telemetry, type: uint32, access: ro}",
+                "  second: {category: telemetry, type: uint32, access: ro}",
+                "  third: {category: telemetry, type: uint32, access: ro}",
+                "pdo:",
+                "  tpdo:",
+                "    oversized:",
+                "      mapping: [first, second, third]",
+                "",
+            )
+        ),
+        encoding="utf-8",
+    )
+    device = parse_device(config)
+    graph = resolve_modules(device)
+    dictionary = allocate_object_dictionary(graph.namespace, graph.objects)
+
+    with pytest.raises(PdoValidationError, match="TPDO 'oversized' exceeds maximum payload"):
+        resolve_pdo_mappings(
+            resolve_pdo_references(graph), dictionary, resolve_module_graph_types(graph)
+        )
