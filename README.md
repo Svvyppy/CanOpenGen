@@ -6,8 +6,9 @@ become the single source of truth for validation, deterministic address allocati
 EDS generation, Markdown documentation, and CANoopEn C++ generation through Eds2Od.
 
 > [!NOTE]
-> Phase 2 provides schema-v1 parsing and deterministic device-local address allocation.
-> Module/type/PDO resolution and output generation are not implemented yet.
+> Phase 3 provides schema-v1 parsing, custom type resolution, and deterministic
+> device-local address allocation. Module/PDO resolution and output generation are not
+> implemented yet.
 
 ## Planned pipeline
 
@@ -56,8 +57,8 @@ cmake --build build --target docs
 ## Validation and address maps
 
 Every definition starts with `schema: 1` and contains exactly one `device` or `module`
-identity. The current CLI validates YAML syntax, the public JSON Schema, manual
-addresses, and deterministic automatic allocation:
+identity. The current CLI validates YAML syntax, the public JSON Schema, aliases,
+enums, manual addresses, and deterministic automatic allocation:
 
 ```bash
 canopengen validate Device/PressureSensor.yml
@@ -67,10 +68,37 @@ canopengen map Device/PressureSensor.yml
 
 The example project demonstrates imports, parameter plumbing, aliases, enums,
 variables, a record, an array, manual addresses, and symbolic TPDO/RPDO mappings.
-These constructs are parsed into immutable models. Imported module objects and custom
-type/PDO semantics will be added in their dedicated resolver phases.
+These constructs are parsed into immutable models. Imported module objects and PDO
+semantics will be added in their dedicated resolver phases.
 
 The public IDE schema is [schemas/canopengen.schema.json](schemas/canopengen.schema.json).
+
+## Custom types
+
+Aliases resolve recursively until they reach a standard CANopen primitive:
+
+```yaml
+types:
+  RawPressure:
+    base: uint32
+  Pressure:
+    base: RawPressure
+```
+
+Cycles report their complete chain. Enums may use a direct or aliased integer base and
+retain symbolic values while objects lower to the primitive storage type:
+
+```yaml
+types:
+  DeviceState:
+    base: uint8
+    enum:
+      INIT: 0
+      READY: 1
+```
+
+Enum values are checked against the exact signed/unsigned primitive range. Boolean,
+real, string, and domain primitives cannot back schema-v1 enums.
 
 ## Automatic addressing
 
@@ -107,9 +135,9 @@ and [architecture plan](docs/wiki/Architecture.md).
 
 ## Project status
 
-Repository infrastructure, Phase 1 parsing, and Phase 2 deterministic address
-allocation are implemented. Phase 3 resolves aliases and enums. The first stable
-release will be `v1.0.0` only after the complete YAML-to-Eds2Od pipeline and its
-acceptance suite pass.
+Repository infrastructure, parsing, deterministic address allocation, and Phase 3
+alias/enum resolution are implemented. Phase 4 adds recursive modules and reference
+namespaces. The first stable release will be `v1.0.0` only after the complete
+YAML-to-Eds2Od pipeline and its acceptance suite pass.
 
 CanOpenGen is licensed under the [Apache License 2.0](LICENSE).

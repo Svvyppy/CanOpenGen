@@ -15,5 +15,11 @@ range exhaustion, invalid/colliding manual addresses, YAML-order independence,
 reproducibility, record subindex reservation/collision/exhaustion, array sequential
 subindices and limits, address diagnostics, and a golden Object Dictionary map.
 
+Phase 3 covers primitive references, aliases, nested aliases, numerically ordered
+enums, enum bases through aliases, enum inheritance, complete cycle diagnostics,
+unknown bases/references, exact signed and unsigned range boundaries, invalid enum
+storage primitives, reserved type names, and record/array child type lowering. The OD
+map golden verifies resolved primitive plus custom type display.
+
 Local commands are listed in the repository README. CI runs the same checks on
 supported Python versions.

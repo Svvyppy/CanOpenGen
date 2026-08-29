@@ -27,6 +27,11 @@ class PrimitiveDataType:
         """Return whether enum range validation can use this primitive."""
         return self.integer_range is not None
 
+    @property
+    def enum_compatible(self) -> bool:
+        """Return whether schema-v1 enums may use this primitive as storage."""
+        return self.is_integer and self.alias != "bool"
+
 
 def _integer(alias: str, canopen_name: str, bits: int, *, signed: bool) -> PrimitiveDataType:
     """Build integer primitive metadata without duplicating range arithmetic."""

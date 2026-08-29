@@ -10,6 +10,9 @@ from canopengen.model import (
     AllocatedSubObject,
     ObjectCategory,
     ObjectKind,
+    ResolvedDataType,
+    ResolvedDefinitionTypes,
+    ResolvedObjectType,
     SubObjectRole,
 )
 
@@ -26,35 +29,71 @@ def _source_label(source: AddressSource, probe_distance: int) -> str:
     return f"auto, crc32{suffix}"
 
 
-def _object_type(allocated: AllocatedObject) -> str:
-    """Render unresolved variable/record/array type metadata compactly."""
+def _datatype_label(datatype: ResolvedDataType) -> str:
+    """Render primitive storage and an applicable custom type name."""
+    if datatype.custom_type_name is None:
+        return datatype.primitive.alias
+    return f"{datatype.primitive.alias} ({datatype.custom_type_name})"
+
+
+def _object_type(allocated: AllocatedObject, resolved: ResolvedObjectType) -> str:
+    """Render resolved variable/record/array type metadata compactly."""
     definition = allocated.definition
     if definition.kind is ObjectKind.ARRAY:
-        return f"array<{definition.item_type}>[{definition.length}]"
-    return definition.type_name
+        if resolved.item_datatype is None:
+            raise AssertionError("resolved array is missing item datatype metadata")
+        return f"array<{_datatype_label(resolved.item_datatype)}>[{definition.length}]"
+    if definition.kind is ObjectKind.RECORD:
+        return "record"
+    if resolved.datatype is None:
+        raise AssertionError("resolved variable is missing datatype metadata")
+    return _datatype_label(resolved.datatype)
 
 
-def _format_object_line(allocated: AllocatedObject) -> str:
+def _format_object_line(allocated: AllocatedObject, resolved: ResolvedObjectType) -> str:
     """Format an object entry at subindex zero."""
     definition = allocated.definition
     access = definition.access.value if definition.access is not None else "--"
     source = _source_label(allocated.address_source, allocated.probe_distance)
     return (
         f"0x{allocated.index:04X}:00  {definition.key:<24} "
-        f"{_object_type(allocated):<24} {access:<2}  [{source}]"
+        f"{_object_type(allocated, resolved):<24} {access:<2}  [{source}]"
     ).rstrip()
 
 
-def _format_subobject_line(index: int, subobject: AllocatedSubObject) -> str:
+def _subobject_datatype(
+    subobject: AllocatedSubObject,
+    resolved: ResolvedObjectType,
+) -> ResolvedDataType:
+    """Return resolved record-field or array-element type metadata."""
+    if subobject.role is SubObjectRole.ARRAY_ELEMENT:
+        if resolved.item_datatype is None:
+            raise AssertionError("resolved array element is missing datatype metadata")
+        return resolved.item_datatype
+    field = resolved.field_by_qualified_name(subobject.qualified_name)
+    if field is None:
+        raise AssertionError(f"resolved record is missing field type '{subobject.qualified_name}'")
+    return field.datatype
+
+
+def _format_subobject_line(
+    index: int,
+    subobject: AllocatedSubObject,
+    resolved: ResolvedObjectType,
+) -> str:
     """Format a record field or sequential array element."""
     source = _source_label(subobject.address_source, subobject.probe_distance)
+    datatype = _datatype_label(_subobject_datatype(subobject, resolved))
     return (
         f"0x{index:04X}:{subobject.subindex:02X}    {subobject.key:<22} "
-        f"{subobject.type_name:<24} {subobject.access.value:<2}  [{source}]"
+        f"{datatype:<24} {subobject.access.value:<2}  [{source}]"
     ).rstrip()
 
 
-def format_object_dictionary_map(dictionary: AllocatedObjectDictionary) -> str:
+def format_object_dictionary_map(
+    dictionary: AllocatedObjectDictionary,
+    resolved_types: ResolvedDefinitionTypes,
+) -> str:
     """Render deterministic allocated objects grouped by schema-v1 category."""
     lines = [f"{dictionary.namespace} Object Dictionary", ""]
     headings = {
@@ -73,9 +112,14 @@ def format_object_dictionary_map(dictionary: AllocatedObjectDictionary) -> str:
         if not category_objects:
             lines.append("(none)")
         for allocated in category_objects:
-            lines.append(_format_object_line(allocated))
+            resolved = resolved_types.object_type(allocated.definition.qualified_name)
+            if resolved is None:
+                raise AssertionError(
+                    f"missing resolved type for '{allocated.definition.qualified_name}'"
+                )
+            lines.append(_format_object_line(allocated, resolved))
             lines.extend(
-                _format_subobject_line(allocated.index, subobject)
+                _format_subobject_line(allocated.index, subobject, resolved)
                 for subobject in allocated.subobjects
                 if subobject.role is not SubObjectRole.COUNT
             )

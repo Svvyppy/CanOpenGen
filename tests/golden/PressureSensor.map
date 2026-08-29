@@ -11,8 +11,8 @@ Telemetry
 0x20EB:06    samples[6]             uint16                   ro  [sequential]
 0x20EB:07    samples[7]             uint16                   ro  [sequential]
 0x20EB:08    samples[8]             uint16                   ro  [sequential]
-0x2200:00  pressure                 Pressure                 ro  [explicit]
-0x24E4:00  state                    DeviceState              ro  [auto, crc32]
+0x2200:00  pressure                 uint32 (Pressure)        ro  [explicit]
+0x24E4:00  state                    uint8 (DeviceState)      ro  [auto, crc32]
 
 Commands
 ------------------------------------------------------------------------

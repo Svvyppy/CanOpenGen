@@ -90,3 +90,27 @@ class InvalidArrayLengthError(AllocationError):
 
 class UnknownAddressObjectError(AllocationError):
     """An address diagnostic context does not contain the requested object."""
+
+
+class TypeResolutionError(CanOpenGenError):
+    """Base class for custom and object datatype resolution failures."""
+
+
+class UnknownDataTypeError(TypeResolutionError):
+    """A custom base, object, field, or array item names no known datatype."""
+
+
+class AliasCycleError(TypeResolutionError):
+    """Custom aliases form a recursive dependency chain."""
+
+
+class InvalidEnumBaseError(TypeResolutionError):
+    """An enum does not ultimately resolve to an integer CANopen primitive."""
+
+
+class EnumValueOutOfRangeError(TypeResolutionError):
+    """An enum value does not fit its resolved integer primitive."""
+
+
+class ReservedTypeNameError(TypeResolutionError):
+    """A custom type shadows a primitive or structural schema type name."""

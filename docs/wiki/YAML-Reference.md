@@ -39,6 +39,10 @@ types:
       READY: 1
 ```
 
+Alias bases may name another local custom type and resolve recursively. Unknown bases,
+cycles, primitive-name shadowing, non-integer enum bases, and out-of-range enum values
+are semantic errors. Imported type lookup is added with module resolution in Phase 4.
+
 ## Objects
 
 Every object requires `category` and `type`. Variables and arrays require `access`;

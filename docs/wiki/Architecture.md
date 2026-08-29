@@ -38,6 +38,29 @@ The raw IR is structurally valid but unresolved. It intentionally contains modul
 names, custom base names, symbolic references, and absent automatic addresses. Later
 stages produce new resolved models instead of mutating YAML dictionaries.
 
+## Phase 3 type IR
+
+The type resolver recursively lowers each local type reference without changing raw
+definitions:
+
+```text
+ResolvedDefinitionTypes
+├── ResolvedCustomType[]
+│   └── primitive / alias_chain / enum_members
+└── ResolvedObjectType[]
+    ├── ResolvedDataType
+    ├── item_datatype
+    └── ResolvedSubObjectType[]
+```
+
+Every `ResolvedDataType` records its declared name, resolved primitive, applicable
+custom type name, complete alias chain, and inherited/declared enum semantics. A
+per-run recursion stack reports exact cycles without global mutable resolver state.
+
+Type resolution now runs before address allocation in CLI validation. Phase 4 will
+construct a transitive namespace-aware type environment and then reuse the same local
+lowering rules.
+
 ## Phase 2 address IR
 
 The allocator pairs raw definitions with immutable address metadata:

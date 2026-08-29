@@ -15,31 +15,35 @@ from canopengen.model import (
     DeviceDefinition,
     ModuleDefinition,
     ObjectCategory,
+    ResolvedDefinitionTypes,
 )
 from canopengen.odmap import format_address_diagnostic, format_object_dictionary_map
 from canopengen.parser import parse_definition, parse_device
+from canopengen.type_resolver import resolve_definition_types
 
 
-def _allocate_definition(
+def _resolve_definition(
     definition: DeviceDefinition | ModuleDefinition,
-) -> AllocatedObjectDictionary:
-    """Allocate one parsed definition and attach its source path to diagnostics."""
+) -> tuple[ResolvedDefinitionTypes, AllocatedObjectDictionary]:
+    """Resolve types and addresses for one parsed definition."""
     namespace = (
         definition.name if isinstance(definition, DeviceDefinition) else definition.namespace
     )
+    resolved_types = resolve_definition_types(definition)
     try:
-        return allocate_object_dictionary(namespace, definition.objects)
+        dictionary = allocate_object_dictionary(namespace, definition.objects)
     except AllocationError as error:
         raise AllocationError(f"{definition.source_path}: {error}") from error
+    return resolved_types, dictionary
 
 
 def _validate(arguments: argparse.Namespace) -> int:
     """Run structural and available semantic validation for one definition file."""
     path = cast(Path, arguments.config)
     definition = parse_definition(path)
-    _allocate_definition(definition)
+    _resolve_definition(definition)
     kind = "device" if isinstance(definition, DeviceDefinition) else "module"
-    print(f"{path}: OK ({kind}, schema {definition.schema_version}; address validation)")
+    print(f"{path}: OK ({kind}, schema {definition.schema_version}; type/address validation)")
     return 0
 
 
@@ -54,12 +58,12 @@ def _validate_all(arguments: argparse.Namespace) -> int:
     """Run all currently available validation for project YAML files."""
     project_root = cast(Path, arguments.project_root)
     paths = _project_yaml_files(project_root)
-    print("Validating CanOpenGen project (schema and address validation)...")
+    print("Validating CanOpenGen project (schema, type, and address validation)...")
     failures = 0
     for path in paths:
         try:
             definition = parse_definition(path)
-            _allocate_definition(definition)
+            _resolve_definition(definition)
         except CanOpenGenError as error:
             failures += 1
             print(f"{path}    FAILED", file=sys.stderr)
@@ -86,8 +90,8 @@ def _unavailable(arguments: argparse.Namespace) -> int:
 def _map(arguments: argparse.Namespace) -> int:
     """Allocate and print device-local Object Dictionary addresses."""
     device = parse_device(cast(Path, arguments.config))
-    dictionary = _allocate_definition(device)
-    print(format_object_dictionary_map(dictionary), end="")
+    resolved_types, dictionary = _resolve_definition(device)
+    print(format_object_dictionary_map(dictionary, resolved_types), end="")
     if device.imports:
         print("Note: imported module objects will be included after Phase 4 resolution.")
     return 0
@@ -101,7 +105,7 @@ def _address(arguments: argparse.Namespace) -> int:
     dictionary = None
     if raw_config is not None:
         device = parse_device(raw_config)
-        dictionary = _allocate_definition(device)
+        _, dictionary = _resolve_definition(device)
     diagnostic = diagnose_address(qualified_name, category, allocated=dictionary)
     print(format_address_diagnostic(diagnostic), end="")
     return 0
