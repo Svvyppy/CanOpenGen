@@ -46,10 +46,16 @@ jobs:
       - name: Determine version and create tag
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: semantic-release version
+        run: >-
+          rm -rf dist
+          && semantic-release version
 
-      - name: Publish GitHub release
+      - name: Create GitHub release with distribution assets
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: semantic-release publish
-
+        run: >-
+          if git describe --tags --exact-match >/dev/null 2>&1; then
+            tag=$(git describe --tags --exact-match) && gh release create "$tag" dist/* --title "$tag" --generate-notes;
+          else
+            echo "No release version was created for this commit.";
+          fi
