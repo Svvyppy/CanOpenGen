@@ -101,3 +101,6 @@ jobs:
 
       - name: Run real Eds2Od integration test
         run: python -m pytest tests/integration/test_eds2od_integration.py
+
+      - name: Build the CMake PressureSensor integration
+        run: cmake -S . -B build-cmake -DCANOPENGEN_BUILD_EXAMPLE=ON && cmake --build build-cmake --target PressureSensor_canopen

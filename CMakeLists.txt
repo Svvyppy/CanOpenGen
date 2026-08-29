@@ -2,6 +2,16 @@ cmake_minimum_required(VERSION 3.20)
 
 project(CanOpenGen LANGUAGES NONE)
 
+include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/CanOpenGen.cmake")
+option(CANOPENGEN_BUILD_EXAMPLE "Generate the bundled PressureSensor artifacts" OFF)
+if(CANOPENGEN_BUILD_EXAMPLE)
+    canopen_device(
+        NAME PressureSensor
+        CONFIG "${CMAKE_CURRENT_SOURCE_DIR}/Device/PressureSensor.yml"
+        OUTPUT_DIR "${CMAKE_CURRENT_BINARY_DIR}/canopen"
+    )
+endif()
+
 find_package(Doxygen REQUIRED)
 
 set(CANOPENGEN_DOXYGEN_OUTPUT_DIR "${CMAKE_CURRENT_BINARY_DIR}/docs")
@@ -18,4 +28,3 @@ add_custom_target(
     COMMENT "Generating CanOpenGen API documentation"
     VERBATIM
 )
-
