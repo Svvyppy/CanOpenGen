@@ -24,7 +24,13 @@ classifiers = [
   "Programming Language :: Python :: 3.14",
   "Topic :: Software Development :: Code Generators",
 ]
-dependencies = []
+dependencies = [
+  "jsonschema>=4.23",
+  "PyYAML>=6.0.2",
+]
+
+[project.scripts]
+canopengen = "canopengen.cli:main"
 
 [project.optional-dependencies]
 dev = [
@@ -32,6 +38,8 @@ dev = [
   "mypy>=1.14",
   "pytest>=8.3",
   "ruff>=0.9",
+  "types-jsonschema>=4.23",
+  "types-PyYAML>=6.0.12",
 ]
 
 [project.urls]
@@ -42,6 +50,9 @@ Repository = "https://github.com/Svvyppy/CanOpenGen.git"
 
 [tool.hatch.build.targets.wheel]
 packages = ["canopengen"]
+
+[tool.hatch.build.targets.wheel.force-include]
+"schemas/canopengen.schema.json" = "canopengen/schemas/canopengen.schema.json"
 
 [tool.pytest.ini_options]
 addopts = "--strict-config --strict-markers"

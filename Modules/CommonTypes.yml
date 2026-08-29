@@ -1,0 +1,11 @@
+schema: 1
+
+module:
+  name: Common Types
+  info: |
+    Shared datatype aliases.
+
+types:
+  FirmwareVersion:
+    base: uint32
+

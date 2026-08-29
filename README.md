@@ -6,8 +6,8 @@ become the single source of truth for validation, deterministic address allocati
 EDS generation, Markdown documentation, and CANoopEn C++ generation through Eds2Od.
 
 > [!NOTE]
-> The project is in repository-bootstrap development. The generator and its CLI are
-> not implemented yet.
+> Phase 1 provides schema-v1 structural validation and explicit raw models. Module,
+> type, address, and PDO resolution plus output generation are not implemented yet.
 
 ## Planned pipeline
 
@@ -53,15 +53,31 @@ cmake -S . -B build
 cmake --build build --target docs
 ```
 
+## Structural validation
+
+Every definition starts with `schema: 1` and contains exactly one `device` or `module`
+identity. The current CLI validates YAML syntax and the public JSON Schema:
+
+```bash
+canopengen validate Device/PressureSensor.yml
+canopengen validate-all
+```
+
+The example project demonstrates imports, parameter plumbing, aliases, enums,
+variables, a record, an array, manual addresses, and symbolic TPDO/RPDO mappings.
+These constructs are parsed into immutable raw models; cross-file and semantic checks
+will be added in their dedicated phases.
+
+The public IDE schema is [schemas/canopengen.schema.json](schemas/canopengen.schema.json).
+
 Development follows short-lived branches into `develop`, Conventional Commits, and
 Semantic Versioning. See the [development workflow](docs/wiki/Development-Workflow.md)
 and [architecture plan](docs/wiki/Architecture.md).
 
 ## Project status
 
-The implementation is intentionally phased. Repository infrastructure is Phase 0;
-the data model and YAML parser begin in Phase 1. The first stable release will be
-`v1.0.0` only after the complete YAML-to-Eds2Od pipeline and its acceptance suite pass.
+Repository infrastructure and Phase 1 raw parsing are implemented. Phase 2 adds
+deterministic CRC32 address allocation. The first stable release will be `v1.0.0` only
+after the complete YAML-to-Eds2Od pipeline and its acceptance suite pass.
 
 CanOpenGen is licensed under the [Apache License 2.0](LICENSE).
-
