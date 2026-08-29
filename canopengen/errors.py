@@ -158,3 +158,19 @@ class UnknownReferenceError(ReferenceResolutionError):
 
 class AmbiguousReferenceError(ReferenceResolutionError):
     """An unqualified reference matches multiple visible qualified names."""
+
+
+class EdsGenerationError(CanOpenGenError):
+    """The resolved Object Dictionary cannot be rendered as compatible EDS."""
+
+
+class Eds2OdError(CanOpenGenError):
+    """Base class for Eds2Od discovery and execution failures."""
+
+
+class Eds2OdUnavailableError(Eds2OdError):
+    """No usable bundled or explicitly supplied Eds2Od invocation is available."""
+
+
+class Eds2OdExecutionError(Eds2OdError):
+    """Eds2Od rejected an EDS or did not produce the requested C++ output."""
