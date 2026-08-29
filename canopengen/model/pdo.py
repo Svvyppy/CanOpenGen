@@ -15,7 +15,7 @@ class PdoDirection(StrEnum):
 
 @dataclass(frozen=True, slots=True)
 class PdoDefinition:
-    """A named PDO whose symbolic entries are resolved in a later phase."""
+    """A named PDO with symbolic entries resolved during validation/generation."""
 
     key: str
     owner_namespace: str

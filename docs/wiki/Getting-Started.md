@@ -16,8 +16,7 @@ canopengen generate Device/PressureSensor.yml --output build/canopen
 ```
 
 `validate` checks YAML structure, the complete module graph, visible custom types,
-symbolic PDO targets, and currently available address semantics. `map` shows resolved
-primitive/custom type metadata, all device/module objects, and address provenance. PDO
-payload size/mappability arrives in a later phase without changing the schema-v1 command
-shape. `generate` writes a CiA 306 EDS and CANoopEn C++ Object Dictionary through the
+symbolic PDO targets, PDO mappability/payload limits, and address semantics. `map` shows
+resolved primitive/custom type metadata, all device/module objects, and address
+provenance. `generate` writes a CiA 306 EDS, Markdown, and CANoopEn C++ Object Dictionary through the
 bundled Eds2Od source project (which requires .NET SDK 10 when no native binary exists).

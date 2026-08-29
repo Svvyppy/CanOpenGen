@@ -49,7 +49,7 @@ class SchemaValidationError(CanOpenGenError):
 
 
 class CommandUnavailableError(CanOpenGenError):
-    """A stable CLI command exists but its implementation belongs to a later phase."""
+    """A stable CLI command exists but is unavailable in this build."""
 
 
 class AllocationError(CanOpenGenError):
