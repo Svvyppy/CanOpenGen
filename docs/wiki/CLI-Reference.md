@@ -10,9 +10,10 @@ canopengen validate-all --project-root path/to/project
 
 `validate` parses one Device or Module file. `validate-all` discovers
 `Modules/*.yml` followed by `Device/*.yml`. Both return non-zero for malformed YAML,
-unsupported schema versions, JSON Schema violations, invalid manual addresses,
-collisions, or address-space exhaustion. Until module resolution is implemented, each
-definition's local objects are allocated independently.
+unsupported schema versions, JSON Schema violations, unknown/cyclic custom types,
+invalid enum values, invalid manual addresses, collisions, or address-space exhaustion.
+Until module resolution is implemented, each definition's local types and objects are
+resolved independently.
 
 ## Address map
 
@@ -20,9 +21,10 @@ definition's local objects are allocated independently.
 canopengen map Device/PressureSensor.yml
 ```
 
-The map groups final indexes by category and displays record/array subindices, raw type
-names, access, explicit/automatic provenance, and non-zero probe distances. Imported
-module objects are explicitly omitted until Phase 4.
+The map groups final indexes by category and displays record/array subindices, resolved
+primitive storage, applicable custom type names, access, explicit/automatic provenance,
+and non-zero probe distances. Imported module objects are explicitly omitted until
+Phase 4.
 
 ## Address diagnostics
 
