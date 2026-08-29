@@ -14,21 +14,27 @@ from canopengen.model import (
 
 
 @pytest.mark.parametrize(
-    ("alias", "canopen_name", "bit_width"),
+    ("alias", "canopen_name", "eds_data_type", "bit_width"),
     [
-        ("bool", "BOOLEAN", 1),
-        ("int16", "INTEGER16", 16),
-        ("uint32", "UNSIGNED32", 32),
-        ("float64", "REAL64", 64),
-        ("string", "VISIBLE_STRING", None),
-        ("domain", "DOMAIN", None),
+        ("bool", "BOOLEAN", 0x0001, 1),
+        ("int16", "INTEGER16", 0x0003, 16),
+        ("uint32", "UNSIGNED32", 0x0007, 32),
+        ("float64", "REAL64", 0x0011, 64),
+        ("string", "VISIBLE_STRING", 0x0009, None),
+        ("domain", "DOMAIN", 0x000F, None),
     ],
 )
-def test_primitive_registry(alias: str, canopen_name: str, bit_width: int | None) -> None:
+def test_primitive_registry(
+    alias: str,
+    canopen_name: str,
+    eds_data_type: int,
+    bit_width: int | None,
+) -> None:
     """Developer aliases map centrally to CANopen metadata."""
     primitive = get_primitive(alias)
     assert primitive is not None
     assert primitive.canopen_name == canopen_name
+    assert primitive.eds_data_type == eds_data_type
     assert primitive.bit_width == bit_width
 
 

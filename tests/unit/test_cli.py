@@ -5,6 +5,7 @@ from pathlib import Path
 import pytest
 
 from canopengen.cli import main
+from canopengen.eds2od import Eds2OdResult
 
 PROJECT_ROOT = Path(__file__).parents[2]
 
@@ -101,15 +102,48 @@ objects:
     assert "object 'UnknownType.value' references unknown datatype 'Missing'" in output.err
 
 
-def test_generate_command_is_visible_but_fails_clearly(
+def test_generate_command_writes_eds_markdown_and_cplusplus_output(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
     capsys: pytest.CaptureFixture[str],
 ) -> None:
-    """The stable CLI shape does not pretend deferred functionality exists."""
-    result = main(["generate", "Device.yml", "--output", "build/canopen"])
+    """Generation uses resolved IR and delegates C++ output to the Eds2Od boundary."""
+
+    def fake_eds2od(
+        eds_path: Path, output_dir: Path, device_name: str, **_: object
+    ) -> Eds2OdResult:
+        cpp_path = output_dir / f"{device_name}Od.cpp"
+        hpp_path = output_dir / f"{device_name}Od.hpp"
+        cpp_path.write_text("// generated source\n", encoding="utf-8")
+        hpp_path.write_text("// generated header\n", encoding="utf-8")
+        return Eds2OdResult(
+            command=("fake-eds2od", str(eds_path)),
+            cpp_path=cpp_path,
+            hpp_path=hpp_path,
+            stdout="",
+            stderr="",
+        )
+
+    monkeypatch.setattr("canopengen.cli.run_eds2od", fake_eds2od)
+    output_dir = tmp_path / "canopen"
+    result = main(
+        [
+            "generate",
+            str(PROJECT_ROOT / "Device" / "PressureSensor.yml"),
+            "--output",
+            str(output_dir),
+        ]
+    )
 
     output = capsys.readouterr()
-    assert result == 1
-    assert "not available until Phase 5 EDS/Eds2Od generation" in output.err
+    assert result == 0
+    assert (output_dir / "PressureSensor.eds").is_file()
+    assert (output_dir / "PressureSensor.md").is_file()
+    assert (output_dir / "PressureSensorOd.cpp").is_file()
+    assert (output_dir / "PressureSensorOd.hpp").is_file()
+    assert "Generated" in output.out
+    assert "[2200]" in (output_dir / "PressureSensor.eds").read_text(encoding="utf-8")
+    assert "# PressureSensor" in (output_dir / "PressureSensor.md").read_text(encoding="utf-8")
 
 
 def test_map_command(capsys: pytest.CaptureFixture[str]) -> None:

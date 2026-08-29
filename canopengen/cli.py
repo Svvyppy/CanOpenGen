@@ -9,23 +9,33 @@ from pathlib import Path
 from typing import cast
 
 from canopengen.allocator import allocate_object_dictionary, diagnose_address
-from canopengen.errors import AllocationError, CanOpenGenError, CommandUnavailableError
+from canopengen.eds2od import run_eds2od
+from canopengen.errors import AllocationError, CanOpenGenError
+from canopengen.generators import generate_eds, generate_markdown
 from canopengen.model import (
     AllocatedObjectDictionary,
     DeviceDefinition,
     ModuleDefinition,
     ObjectCategory,
     ResolvedDefinitionTypes,
+    ResolvedModuleGraph,
+    ResolvedPdoDefinition,
 )
 from canopengen.odmap import format_address_diagnostic, format_object_dictionary_map
 from canopengen.parser import parse_definition, parse_device
+from canopengen.pdo import resolve_pdo_mappings
 from canopengen.resolver import resolve_modules, resolve_pdo_references
 from canopengen.type_resolver import resolve_module_graph_types
 
 
 def _resolve_definition(
     definition: DeviceDefinition | ModuleDefinition,
-) -> tuple[ResolvedDefinitionTypes, AllocatedObjectDictionary]:
+) -> tuple[
+    ResolvedModuleGraph,
+    ResolvedDefinitionTypes,
+    AllocatedObjectDictionary,
+    tuple[ResolvedPdoDefinition, ...],
+]:
     """Resolve modules, types, references, and addresses for one definition."""
     graph = resolve_modules(definition)
     resolved_types = resolve_module_graph_types(graph)
@@ -33,8 +43,9 @@ def _resolve_definition(
         dictionary = allocate_object_dictionary(graph.namespace, graph.objects)
     except AllocationError as error:
         raise AllocationError(f"{definition.source_path}: {error}") from error
-    resolve_pdo_references(graph)
-    return resolved_types, dictionary
+    pdo_references = resolve_pdo_references(graph)
+    resolve_pdo_mappings(pdo_references, dictionary, resolved_types)
+    return graph, resolved_types, dictionary, pdo_references
 
 
 def _validate(arguments: argparse.Namespace) -> int:
@@ -83,19 +94,39 @@ def _validate_all(arguments: argparse.Namespace) -> int:
     return 0
 
 
-def _unavailable(arguments: argparse.Namespace) -> int:
-    """Report commands intentionally deferred beyond Phase 1."""
-    command = cast(str, arguments.command)
-    phases = {
-        "generate": "Phase 5 EDS/Eds2Od generation",
-    }
-    raise CommandUnavailableError(f"'{command}' is not available until {phases[command]}")
+def _generate(arguments: argparse.Namespace) -> int:
+    """Generate EDS and CANoopEn C++ output from one complete device definition."""
+    device = parse_device(cast(Path, arguments.config))
+    graph, resolved_types, dictionary, pdos = _resolve_definition(device)
+    output_dir = cast(Path, arguments.output)
+    output_dir.mkdir(parents=True, exist_ok=True)
+    eds_path = output_dir / f"{device.name}.eds"
+    eds_path.write_text(
+        generate_eds(device.name, dictionary, resolved_types),
+        encoding="utf-8",
+    )
+    markdown_path = output_dir / f"{device.name}.md"
+    markdown_path.write_text(
+        generate_markdown(device, graph, dictionary, resolved_types, pdos),
+        encoding="utf-8",
+    )
+    result = run_eds2od(
+        eds_path,
+        output_dir,
+        device.name,
+        executable=cast(Path | None, arguments.eds2od),
+    )
+    print(f"Generated {eds_path}")
+    print(f"Generated {markdown_path}")
+    print(f"Generated {result.hpp_path}")
+    print(f"Generated {result.cpp_path}")
+    return 0
 
 
 def _map(arguments: argparse.Namespace) -> int:
     """Allocate and print the complete device and imported-module dictionary."""
     device = parse_device(cast(Path, arguments.config))
-    resolved_types, dictionary = _resolve_definition(device)
+    _, resolved_types, dictionary, _ = _resolve_definition(device)
     print(format_object_dictionary_map(dictionary, resolved_types), end="")
     return 0
 
@@ -108,7 +139,7 @@ def _address(arguments: argparse.Namespace) -> int:
     dictionary = None
     if raw_config is not None:
         device = parse_device(raw_config)
-        _, dictionary = _resolve_definition(device)
+        _, _, dictionary, _ = _resolve_definition(device)
     diagnostic = diagnose_address(qualified_name, category, allocated=dictionary)
     print(format_address_diagnostic(diagnostic), end="")
     return 0
@@ -137,12 +168,19 @@ def build_argument_parser() -> argparse.ArgumentParser:
     )
     validate_all_parser.set_defaults(handler=_validate_all)
 
-    generate_parser = subparsers.add_parser("generate", help="generate build artifacts")
+    generate_parser = subparsers.add_parser(
+        "generate", help="generate EDS, Markdown, and CANoopEn C++ output"
+    )
     generate_parser.add_argument("config", type=Path, help="Device YAML path")
     generate_parser.add_argument(
         "--output", type=Path, required=True, help="build output directory"
     )
-    generate_parser.set_defaults(handler=_unavailable)
+    generate_parser.add_argument(
+        "--eds2od",
+        type=Path,
+        help="optional Eds2Od executable (default: bundled tool or CANOPENGEN_EDS2OD)",
+    )
+    generate_parser.set_defaults(handler=_generate)
 
     map_parser = subparsers.add_parser("map", help="print the resolved Object Dictionary map")
     map_parser.add_argument("config", type=Path, help="Device YAML path")
