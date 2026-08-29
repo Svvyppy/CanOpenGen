@@ -21,5 +21,11 @@ unknown bases/references, exact signed and unsigned range boundaries, invalid en
 storage primitives, reserved type names, and record/array child type lowering. The OD
 map golden verifies resolved primitive plus custom type display.
 
+Phase 4 covers direct and nested module loading, filename namespaces, equal transitive
+deduplication, direct duplicate rejection, scalar parameter retention/conflicts,
+missing modules, complete dependency cycles, same object keys in different modules,
+local-first lookup, imported and qualified custom types, qualified PDO references, and
+ambiguous reference diagnostics. The OD map golden now includes imported objects.
+
 Local commands are listed in the repository README. CI runs the same checks on
 supported Python versions.

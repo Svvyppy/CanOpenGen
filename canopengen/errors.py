@@ -114,3 +114,47 @@ class EnumValueOutOfRangeError(TypeResolutionError):
 
 class ReservedTypeNameError(TypeResolutionError):
     """A custom type shadows a primitive or structural schema type name."""
+
+
+class AmbiguousDataTypeError(TypeResolutionError):
+    """An unqualified datatype matches declarations in multiple visible modules."""
+
+
+class ModuleResolutionError(CanOpenGenError):
+    """Base class for reusable-module dependency and reference failures."""
+
+
+class UnknownModuleError(ModuleResolutionError):
+    """A module import has no matching ``Modules/<name>.yml`` source file."""
+
+
+class InvalidModuleNameError(ModuleResolutionError):
+    """A module import is not a safe filename-stem namespace."""
+
+
+class DuplicateModuleImportError(ModuleResolutionError):
+    """One definition directly imports the same module more than once."""
+
+
+class ModuleDependencyCycleError(ModuleResolutionError):
+    """Recursive module imports form a dependency cycle."""
+
+
+class ModuleParameterConflictError(ModuleResolutionError):
+    """A module is reached with incompatible parameter assignments."""
+
+
+class NamespaceCollisionError(ModuleResolutionError):
+    """A device and one of its modules use the same identity namespace."""
+
+
+class ReferenceResolutionError(ModuleResolutionError):
+    """Base class for symbolic Object Dictionary reference failures."""
+
+
+class UnknownReferenceError(ReferenceResolutionError):
+    """A symbolic reference matches no visible object or record field."""
+
+
+class AmbiguousReferenceError(ReferenceResolutionError):
+    """An unqualified reference matches multiple visible qualified names."""

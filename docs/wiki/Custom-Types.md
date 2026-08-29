@@ -42,3 +42,20 @@ semantics.
 
 EDS and CANopen storage use the resolved primitive. Documentation retains both the
 custom type name and numerically ordered enum members.
+
+## Module lookup
+
+Within a Device or Module, local custom types take precedence. If no local declaration
+matches, CanOpenGen searches the owner's transitive imports. Exactly one imported match
+is accepted; multiple matches require an explicit qualified type:
+
+```yaml
+objects:
+  firmware_version:
+    category: diagnostic
+    type: CommonTypes.FirmwareVersion
+    access: ro
+```
+
+Aliases may also use qualified bases. Imported aliases and enums retain the same
+lowering, cycle, and range validation behavior as local declarations.

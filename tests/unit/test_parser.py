@@ -107,7 +107,11 @@ def test_parse_tpdo_and_rpdo() -> None:
     device = parse_device(PRESSURE_SENSOR)
 
     assert [(pdo.direction, pdo.key, pdo.mapping) for pdo in device.pdos] == [
-        (PdoDirection.TRANSMIT, "sensor_data", ("pressure", "state")),
+        (
+            PdoDirection.TRANSMIT,
+            "sensor_data",
+            ("pressure", "state", "Diagnostics.supply_voltage"),
+        ),
         (PdoDirection.RECEIVE, "commands", ("reset",)),
     ]
 
