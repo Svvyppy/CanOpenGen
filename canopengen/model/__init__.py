@@ -1,0 +1,1 @@
+"""Internal CANopen model package."""
