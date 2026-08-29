@@ -23,6 +23,7 @@ from canopengen.model import (
 )
 from canopengen.odmap import format_address_diagnostic, format_object_dictionary_map
 from canopengen.parser import parse_definition, parse_device
+from canopengen.pdo import resolve_pdo_mappings
 from canopengen.resolver import resolve_modules, resolve_pdo_references
 from canopengen.type_resolver import resolve_module_graph_types
 
@@ -42,7 +43,9 @@ def _resolve_definition(
         dictionary = allocate_object_dictionary(graph.namespace, graph.objects)
     except AllocationError as error:
         raise AllocationError(f"{definition.source_path}: {error}") from error
-    return graph, resolved_types, dictionary, resolve_pdo_references(graph)
+    pdo_references = resolve_pdo_references(graph)
+    resolve_pdo_mappings(pdo_references, dictionary, resolved_types)
+    return graph, resolved_types, dictionary, pdo_references
 
 
 def _validate(arguments: argparse.Namespace) -> int:

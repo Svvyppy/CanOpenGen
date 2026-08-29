@@ -160,6 +160,10 @@ class AmbiguousReferenceError(ReferenceResolutionError):
     """An unqualified reference matches multiple visible qualified names."""
 
 
+class PdoValidationError(CanOpenGenError):
+    """A resolved PDO mapping cannot be represented by classic CANopen PDOs."""
+
+
 class EdsGenerationError(CanOpenGenError):
     """The resolved Object Dictionary cannot be rendered as compatible EDS."""
 

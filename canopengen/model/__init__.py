@@ -24,8 +24,10 @@ from canopengen.model.object import (
 from canopengen.model.pdo import (
     PdoDefinition,
     PdoDirection,
+    PdoMappingEntry,
     ResolvedObjectReference,
     ResolvedPdoDefinition,
+    ResolvedPdoMapping,
 )
 from canopengen.model.resolved import (
     AddressDiagnostic,
@@ -64,6 +66,7 @@ __all__ = [
     "ParameterValue",
     "PdoDefinition",
     "PdoDirection",
+    "PdoMappingEntry",
     "PrimitiveDataType",
     "ResolvedCustomType",
     "ResolvedDataType",
@@ -73,6 +76,7 @@ __all__ = [
     "ResolvedObjectReference",
     "ResolvedObjectType",
     "ResolvedPdoDefinition",
+    "ResolvedPdoMapping",
     "ResolvedSubObjectType",
     "SubObjectDefinition",
     "SubObjectRole",
