@@ -39,8 +39,13 @@ function(canopen_device)
         set(namespace_argument --eds2od-namespace "${ARG_EDS2OD_NAMESPACE}")
     endif()
     set(eds2od_argument)
+    set(eds2od_dependencies)
     if(CANOPENGEN_EDS2OD)
         set(eds2od_argument --eds2od "${CANOPENGEN_EDS2OD}")
+    else()
+        list(APPEND eds2od_dependencies
+            "${CANOPENGEN_SOURCE_DIR}/third_party/Eds2Od/Eds2Od/Eds2Od.csproj"
+        )
     endif()
     add_custom_command(
         OUTPUT ${outputs}
@@ -50,7 +55,7 @@ function(canopen_device)
             ${namespace_argument} ${eds2od_argument}
         DEPENDS "${config}" ${module_sources} ${generator_sources}
             "${CANOPENGEN_SOURCE_DIR}/schemas/canopengen.schema.json"
-            "${CANOPENGEN_SOURCE_DIR}/third_party/Eds2Od/Eds2Od/Eds2Od.csproj"
+            ${eds2od_dependencies}
         WORKING_DIRECTORY "${CANOPENGEN_SOURCE_DIR}"
         COMMENT "Generating CANopen artifacts for ${artifact_name}"
         VERBATIM
