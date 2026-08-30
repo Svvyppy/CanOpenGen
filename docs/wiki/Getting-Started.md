@@ -9,10 +9,10 @@ python3 -m venv .venv
 . .venv/bin/activate
 python -m pip install -e '.[dev]'
 git submodule update --init --recursive
-canopengen validate Device/PressureSensor.yml
+canopengen validate examples/definitions/Device/PressureSensor.yml
 canopengen validate-all
-canopengen map Device/PressureSensor.yml
-canopengen generate Device/PressureSensor.yml --output build/canopen
+canopengen map examples/definitions/Device/PressureSensor.yml
+canopengen generate examples/definitions/Device/PressureSensor.yml --output build/canopen
 ```
 
 `validate` checks YAML structure, the complete module graph, visible custom types,

@@ -8,11 +8,12 @@ from canopengen.cli import main
 from canopengen.eds2od import Eds2OdResult
 
 PROJECT_ROOT = Path(__file__).parents[2]
+EXAMPLE_DEFINITIONS = PROJECT_ROOT / "examples" / "definitions"
 
 
 def test_validate_command(capsys: pytest.CaptureFixture[str]) -> None:
     """Single-file validation identifies the parsed kind and schema version."""
-    result = main(["validate", str(PROJECT_ROOT / "Device" / "PressureSensor.yml")])
+    result = main(["validate", str(EXAMPLE_DEFINITIONS / "Device" / "PressureSensor.yml")])
 
     output = capsys.readouterr()
     assert result == 0
@@ -22,7 +23,7 @@ def test_validate_command(capsys: pytest.CaptureFixture[str]) -> None:
 
 def test_validate_all_command(capsys: pytest.CaptureFixture[str]) -> None:
     """Project discovery validates modules before devices in stable order."""
-    result = main(["validate-all", "--project-root", str(PROJECT_ROOT)])
+    result = main(["validate-all", "--project-root", str(EXAMPLE_DEFINITIONS)])
 
     output = capsys.readouterr()
     assert result == 0
@@ -129,7 +130,7 @@ def test_generate_command_writes_eds_markdown_and_cplusplus_output(
     result = main(
         [
             "generate",
-            str(PROJECT_ROOT / "Device" / "PressureSensor.yml"),
+            str(EXAMPLE_DEFINITIONS / "Device" / "PressureSensor.yml"),
             "--output",
             str(output_dir),
         ]
@@ -141,14 +142,34 @@ def test_generate_command_writes_eds_markdown_and_cplusplus_output(
     assert (output_dir / "PressureSensor.md").is_file()
     assert (output_dir / "PressureSensorOd.cpp").is_file()
     assert (output_dir / "PressureSensorOd.hpp").is_file()
+    assert (output_dir / "PressureSensorObjects.hpp").is_file()
     assert "Generated" in output.out
     assert "[2200]" in (output_dir / "PressureSensor.eds").read_text(encoding="utf-8")
     assert "# PressureSensor" in (output_dir / "PressureSensor.md").read_text(encoding="utf-8")
 
 
+def test_generate_rejects_an_invalid_device_filename_namespace(
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """The YAML filename, not a display name, is validated before C++ generation."""
+    config = tmp_path / "pressure-sensor.yml"
+    config.write_text(
+        "schema: 1\ndevice:\n  name: ValidDisplayName\n",
+        encoding="utf-8",
+    )
+
+    result = main(["generate", str(config), "--output", str(tmp_path / "generated")])
+
+    output = capsys.readouterr()
+    assert result == 1
+    assert "invalid device filename 'pressure-sensor.yml'" in output.err
+    assert "filename stem must be a valid C++ namespace identifier" in output.err
+
+
 def test_map_command(capsys: pytest.CaptureFixture[str]) -> None:
     """The map command displays device and imported-module objects."""
-    result = main(["map", str(PROJECT_ROOT / "Device" / "PressureSensor.yml")])
+    result = main(["map", str(EXAMPLE_DEFINITIONS / "Device" / "PressureSensor.yml")])
 
     output = capsys.readouterr()
     assert result == 0
@@ -182,7 +203,7 @@ def test_address_command_with_context(capsys: pytest.CaptureFixture[str]) -> Non
             "--category",
             "telemetry",
             "--config",
-            str(PROJECT_ROOT / "Device" / "PressureSensor.yml"),
+            str(EXAMPLE_DEFINITIONS / "Device" / "PressureSensor.yml"),
         ]
     )
 

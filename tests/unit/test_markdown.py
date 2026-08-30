@@ -13,7 +13,9 @@ PROJECT_ROOT = Path(__file__).parents[2]
 
 def _pressure_sensor_markdown() -> str:
     """Generate the complete example document from resolved Phase 5 IR."""
-    device = parse_device(PROJECT_ROOT / "Device" / "PressureSensor.yml")
+    device = parse_device(
+        PROJECT_ROOT / "examples" / "definitions" / "Device" / "PressureSensor.yml"
+    )
     graph = resolve_modules(device)
     return generate_markdown(
         device,

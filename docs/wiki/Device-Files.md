@@ -9,7 +9,7 @@ PressureSensor.pressure
 PressureSensor.calibration.offset
 ```
 
-The checked-in `Device/PressureSensor.yml` is the schema-v1 reference example. Named
+The checked-in `examples/definitions/Device/PressureSensor.yml` is the schema-v1 reference example. Named
 type, object, field, and PDO mappings are normalized lexically by the raw parser so
 irrelevant YAML mapping order cannot leak into later allocation behavior. PDO mapping
 list order remains significant and is preserved.

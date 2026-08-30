@@ -16,6 +16,7 @@ from canopengen.resolver import resolve_modules
 from canopengen.type_resolver import resolve_module_graph_types
 
 PROJECT_ROOT = Path(__file__).parents[2]
+EXAMPLE_DEFINITIONS = PROJECT_ROOT / "examples" / "definitions"
 EDS2OD_PROJECT = PROJECT_ROOT / "third_party" / "Eds2Od" / "Eds2Od" / "Eds2Od.csproj"
 
 
@@ -39,7 +40,7 @@ def _dotnet_10_available() -> bool:
 )
 def test_pressure_sensor_eds_is_accepted_by_real_eds2od(tmp_path: Path) -> None:
     """Generate the complete example EDS and require the actual CANoopEn tool to accept it."""
-    device = parse_device(PROJECT_ROOT / "Device" / "PressureSensor.yml")
+    device = parse_device(EXAMPLE_DEFINITIONS / "Device" / "PressureSensor.yml")
     graph = resolve_modules(device)
     resolved_types = resolve_module_graph_types(graph)
     dictionary = allocate_object_dictionary(graph.namespace, graph.objects)

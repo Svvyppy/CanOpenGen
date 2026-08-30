@@ -20,7 +20,7 @@ from canopengen.model import (
 from canopengen.parser import parse_definition, parse_device, parse_module
 
 PROJECT_ROOT = Path(__file__).parents[2]
-PRESSURE_SENSOR = PROJECT_ROOT / "Device" / "PressureSensor.yml"
+PRESSURE_SENSOR = PROJECT_ROOT / "examples" / "definitions" / "Device" / "PressureSensor.yml"
 
 
 def _write_yaml(tmp_path: Path, content: str, *, filename: str = "Definition.yml") -> Path:
@@ -118,7 +118,9 @@ def test_parse_tpdo_and_rpdo() -> None:
 
 def test_module_filename_defines_namespace() -> None:
     """Module display text never replaces filename-based identity."""
-    module = parse_module(PROJECT_ROOT / "Modules" / "FirmwareInfo.yml")
+    module = parse_module(
+        PROJECT_ROOT / "examples" / "definitions" / "Modules" / "FirmwareInfo.yml"
+    )
 
     assert module.name == "Firmware Information"
     assert module.namespace == "FirmwareInfo"
@@ -130,14 +132,15 @@ def test_parse_definition_returns_correct_variant() -> None:
     """The generic entry point discriminates devices from modules."""
     assert isinstance(parse_definition(PRESSURE_SENSOR), DeviceDefinition)
     assert isinstance(
-        parse_definition(PROJECT_ROOT / "Modules" / "Diagnostics.yml"), ModuleDefinition
+        parse_definition(PROJECT_ROOT / "examples" / "definitions" / "Modules" / "Diagnostics.yml"),
+        ModuleDefinition,
     )
 
 
 def test_specific_parser_rejects_other_definition_kind() -> None:
     """Callers can require a Device or Module without unsafe casts."""
     with pytest.raises(SchemaValidationError, match="expected a Device"):
-        parse_device(PROJECT_ROOT / "Modules" / "Diagnostics.yml")
+        parse_device(PROJECT_ROOT / "examples" / "definitions" / "Modules" / "Diagnostics.yml")
     with pytest.raises(SchemaValidationError, match="expected a Module"):
         parse_module(PRESSURE_SENSOR)
 
