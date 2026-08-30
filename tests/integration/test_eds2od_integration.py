@@ -16,6 +16,7 @@ from canopengen.resolver import resolve_modules
 from canopengen.type_resolver import resolve_module_graph_types
 
 PROJECT_ROOT = Path(__file__).parents[2]
+EXAMPLE_DEFINITIONS = PROJECT_ROOT / "examples" / "definitions"
 EDS2OD_PROJECT = PROJECT_ROOT / "third_party" / "Eds2Od" / "Eds2Od" / "Eds2Od.csproj"
 
 
@@ -39,7 +40,7 @@ def _dotnet_10_available() -> bool:
 )
 def test_pressure_sensor_eds_is_accepted_by_real_eds2od(tmp_path: Path) -> None:
     """Generate the complete example EDS and require the actual CANoopEn tool to accept it."""
-    device = parse_device(PROJECT_ROOT / "Device" / "PressureSensor.yml")
+    device = parse_device(EXAMPLE_DEFINITIONS / "Device" / "PressureSensor.yml")
     graph = resolve_modules(device)
     resolved_types = resolve_module_graph_types(graph)
     dictionary = allocate_object_dictionary(graph.namespace, graph.objects)
@@ -55,3 +56,42 @@ def test_pressure_sensor_eds_is_accepted_by_real_eds2od(tmp_path: Path) -> None:
     assert result.hpp_path.is_file()
     assert "CoOdEntryUnsigned32" in result.hpp_path.read_text(encoding="utf-8")
     assert "AddEntry" in result.cpp_path.read_text(encoding="utf-8")
+
+
+@pytest.mark.skipif(
+    not EDS2OD_PROJECT.is_file() or not _dotnet_10_available(),
+    reason="real Eds2Od integration requires the bundled source and .NET SDK 10",
+)
+def test_real_eds2od_remote_namespace_is_stable_across_regeneration(tmp_path: Path) -> None:
+    """The narrow REMOTE wrapper preserves an Eds2Od file on subsequent generations."""
+    device = parse_device(EXAMPLE_DEFINITIONS / "Device" / "PressureSensor.yml")
+    graph = resolve_modules(device)
+    resolved_types = resolve_module_graph_types(graph)
+    dictionary = allocate_object_dictionary(graph.namespace, graph.objects)
+    eds_path = tmp_path / "PressureSensor.eds"
+    eds_path.write_text(
+        generate_eds(device.name, dictionary, resolved_types),
+        encoding="utf-8",
+    )
+
+    output_dir = tmp_path / "generated"
+    first = run_eds2od(
+        eds_path,
+        output_dir,
+        "PressureSensor",
+        cpp_namespace="PressureSensor",
+    )
+    second = run_eds2od(
+        eds_path,
+        output_dir,
+        "PressureSensor",
+        cpp_namespace="PressureSensor",
+    )
+
+    header = second.hpp_path.read_text(encoding="utf-8")
+    source = second.cpp_path.read_text(encoding="utf-8")
+    assert first.hpp_path == second.hpp_path
+    assert "namespace PressureSensor" in header
+    assert "public CANoopEn::CoObjectDictionary" in header
+    assert "using namespace PressureSensor;" in source
+    assert "CANoopEn::CoObjectDictionary(listener)" in source

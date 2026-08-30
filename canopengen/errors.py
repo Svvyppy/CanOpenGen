@@ -172,6 +172,10 @@ class MarkdownGenerationError(CanOpenGenError):
     """The resolved Object Dictionary cannot be rendered as device documentation."""
 
 
+class CppGenerationError(CanOpenGenError):
+    """The resolved Object Dictionary cannot be rendered as C++ metadata."""
+
+
 class Eds2OdError(CanOpenGenError):
     """Base class for Eds2Od discovery and execution failures."""
 

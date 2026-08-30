@@ -22,4 +22,3 @@ objects:
     access: ro
     info: |
       Device supply voltage.
-

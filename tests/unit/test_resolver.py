@@ -19,7 +19,7 @@ from canopengen.resolver import resolve_modules, resolve_pdo_references
 from canopengen.type_resolver import resolve_module_graph_types
 
 PROJECT_ROOT = Path(__file__).parents[2]
-PRESSURE_SENSOR = PROJECT_ROOT / "Device" / "PressureSensor.yml"
+PRESSURE_SENSOR = PROJECT_ROOT / "examples" / "definitions" / "Device" / "PressureSensor.yml"
 
 
 def _write_project(

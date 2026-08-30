@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import re
 import shutil
 import subprocess
 from collections.abc import Sequence
@@ -10,6 +11,8 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from canopengen.errors import Eds2OdExecutionError, Eds2OdUnavailableError
+
+_CPP_IDENTIFIER = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
 
 
 @dataclass(frozen=True, slots=True)
@@ -73,12 +76,53 @@ def _failure_detail(stdout: str, stderr: str) -> str:
     return "\n".join(messages)
 
 
+def _apply_namespace(cpp_path: Path, hpp_path: Path, namespace: str) -> None:
+    """Move a fresh Eds2Od class out of its fixed CANoopEn namespace safely.
+
+    Eds2Od deliberately generates editable source files and has no namespace command
+    line option.  CanOpenGen therefore applies this narrow, deterministic adaptation
+    immediately after every generation.  All CANoopEn stack types remain fully
+    qualified, so only the generated object dictionary class changes namespace.
+    """
+    if not _CPP_IDENTIFIER.fullmatch(namespace):
+        raise Eds2OdExecutionError(
+            f"invalid C++ namespace '{namespace}'; expected a valid identifier"
+        )
+    header = hpp_path.read_text(encoding="utf-8")
+    source = cpp_path.read_text(encoding="utf-8")
+    header_old = "namespace CANoopEn\n{\n\nclass "
+    header_new = f"namespace {namespace}\n{{\n\nclass "
+    source_old = "using namespace CANoopEn;"
+    source_new = f"using namespace {namespace};"
+    if header.count(header_new) == 1 and source.count(source_new) == 1:
+        return
+    if header.count(header_old) != 1 or source.count(source_old) != 1:
+        raise Eds2OdExecutionError(
+            "Eds2Od output has an unexpected namespace layout; cannot safely create "
+            f"the '{namespace}' remote Object Dictionary wrapper"
+        )
+    header = header.replace(header_old, header_new)
+    header = header.replace(
+        " : public CoObjectDictionary\r\n", " : public CANoopEn::CoObjectDictionary\r\n"
+    )
+    header = header.replace(
+        " : public CoObjectDictionary\n", " : public CANoopEn::CoObjectDictionary\n"
+    )
+    source = source.replace(source_old, source_new)
+    source = source.replace(
+        "    CoObjectDictionary(listener),", "    CANoopEn::CoObjectDictionary(listener),"
+    )
+    hpp_path.write_text(header, encoding="utf-8")
+    cpp_path.write_text(source, encoding="utf-8")
+
+
 def run_eds2od(
     eds_path: str | Path,
     output_dir: str | Path,
     device_name: str,
     *,
     executable: str | Path | Sequence[str] | None = None,
+    cpp_namespace: str | None = None,
 ) -> Eds2OdResult:
     """Generate CANoopEn C++ Object Dictionary files from a compatible EDS.
 
@@ -90,6 +134,7 @@ def run_eds2od(
     @param output_dir Directory that will receive ``<device>NameOd.cpp/.hpp``.
     @param device_name Device namespace used for deterministic C++ file names.
     @param executable Optional executable or complete command prefix for tests/tooling.
+    @param cpp_namespace Optional namespace for an isolated remote dictionary class.
     @return Captured successful invocation result and generated C++ paths.
     @raises Eds2OdError If the tool is unavailable, fails, or misses an output file.
     """
@@ -132,6 +177,8 @@ def run_eds2od(
             "Eds2Od completed without generating expected output: "
             + ", ".join(str(path) for path in missing)
         )
+    if cpp_namespace is not None:
+        _apply_namespace(cpp_path, hpp_path, cpp_namespace)
     return Eds2OdResult(
         command=command,
         cpp_path=cpp_path,

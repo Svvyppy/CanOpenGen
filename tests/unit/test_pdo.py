@@ -16,7 +16,9 @@ PROJECT_ROOT = Path(__file__).parents[2]
 
 def test_pdo_entries_encode_final_addresses_and_exact_payload() -> None:
     """Mappings use allocated index/subindex plus resolved primitive bit width."""
-    device = parse_device(PROJECT_ROOT / "Device" / "PressureSensor.yml")
+    device = parse_device(
+        PROJECT_ROOT / "examples" / "definitions" / "Device" / "PressureSensor.yml"
+    )
     graph = resolve_modules(device)
     dictionary = allocate_object_dictionary(graph.namespace, graph.objects)
     pdos = resolve_pdo_mappings(

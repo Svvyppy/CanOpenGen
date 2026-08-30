@@ -3,7 +3,7 @@
 ## Validation
 
 ```bash
-canopengen validate Device/PressureSensor.yml
+canopengen validate examples/definitions/Device/PressureSensor.yml
 canopengen validate-all
 canopengen validate-all --project-root path/to/project
 ```
@@ -19,7 +19,7 @@ its own transitive dependencies from the surrounding `Modules/` directory.
 ## Address map
 
 ```bash
-canopengen map Device/PressureSensor.yml
+canopengen map examples/definitions/Device/PressureSensor.yml
 ```
 
 The map groups final indexes by category and displays record/array subindices, resolved
@@ -32,7 +32,7 @@ every resolved transitive module object.
 ```bash
 canopengen address PressureSensor.pressure --category telemetry
 canopengen address PressureSensor.pressure --category telemetry \
-  --config Device/PressureSensor.yml
+  --config examples/definitions/Device/PressureSensor.yml
 ```
 
 Without a configuration, output shows the canonical hash key, CRC32, range, initial
@@ -42,7 +42,7 @@ shows the final index, allocation source, and probe distance.
 ## Generation
 
 ```bash
-canopengen generate Device/PressureSensor.yml --output build/canopen
+canopengen generate examples/definitions/Device/PressureSensor.yml --output build/canopen
 ```
 
 Generation loads the complete device/module graph, resolves types and references,
