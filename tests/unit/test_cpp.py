@@ -33,3 +33,56 @@ def test_cpp_symbols_expose_typed_variable_record_array_and_enum_metadata() -> N
     assert "namespace Diagnostics {" in generated
     assert "void SetValue(TObjectDictionary& dictionary" in generated
     assert "typename TObject::Type GetValue(TObjectDictionary& dictionary, TObject)" in generated
+
+
+def test_cpp_symbols_prefer_the_owner_enum_when_an_import_reuses_its_name(
+    tmp_path: Path,
+) -> None:
+    """Local-first resolver semantics are retained by generated typed metadata."""
+    modules = tmp_path / "Modules"
+    modules.mkdir()
+    (modules / "Common.yml").write_text(
+        """schema: 1
+module:
+  name: Common
+types:
+  State:
+    base: uint8
+    enum:
+      DISABLED: 0
+      ENABLED: 1
+""",
+        encoding="utf-8",
+    )
+    device_path = tmp_path / "Device" / "Example.yml"
+    device_path.parent.mkdir()
+    device_path.write_text(
+        """schema: 1
+device:
+  name: Example
+modules:
+  - Common
+types:
+  State:
+    base: uint8
+    enum:
+      IDLE: 0
+      ACTIVE: 1
+objects:
+  state:
+    category: telemetry
+    type: State
+    access: ro
+""",
+        encoding="utf-8",
+    )
+    device = parse_device(device_path)
+    graph = resolve_modules(device)
+    resolved_types = resolve_module_graph_types(graph)
+    dictionary = allocate_object_dictionary(graph.namespace, graph.objects)
+
+    generated = generate_cpp_symbols("Example", dictionary, resolved_types)
+
+    assert "enum class State : std::uint8_t" in generated
+    assert "enum class CommonState : std::uint8_t" in generated
+    assert "struct State {\n    using Type = State;" in generated
