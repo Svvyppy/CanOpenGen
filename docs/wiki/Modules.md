@@ -1,7 +1,7 @@
 # Modules
 
 Reusable module definitions live under `Modules/`. Module filenames define their
-namespaces; `Modules/FirmwareInfo.yml` always owns names such as
+namespaces; `examples/definitions/Modules/FirmwareInfo.yml` always owns names such as
 `FirmwareInfo.firmware_version`, even when its display name is “Firmware Information”.
 
 ## Loading and dependencies

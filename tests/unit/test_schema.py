@@ -24,8 +24,9 @@ def test_schema_is_valid_draft_2020_12() -> None:
 def test_schema_accepts_all_project_examples() -> None:
     """Every checked-in Device and Module example conforms structurally."""
     validator = Draft202012Validator(_schema())
-    paths = sorted((PROJECT_ROOT / "Modules").glob("*.yml")) + sorted(
-        (PROJECT_ROOT / "Device").glob("*.yml")
+    definitions = PROJECT_ROOT / "examples" / "definitions"
+    paths = sorted((definitions / "Modules").glob("*.yml")) + sorted(
+        (definitions / "Device").glob("*.yml")
     )
 
     for path in paths:

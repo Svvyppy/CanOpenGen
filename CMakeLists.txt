@@ -5,10 +5,10 @@ project(CanOpenGen LANGUAGES NONE)
 include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/CanOpenGen.cmake")
 option(CANOPENGEN_BUILD_EXAMPLE "Generate the bundled PressureSensor artifacts" OFF)
 if(CANOPENGEN_BUILD_EXAMPLE)
-    canopen_device(
-        NAME PressureSensor
-        CONFIG "${CMAKE_CURRENT_SOURCE_DIR}/Device/PressureSensor.yml"
-        OUTPUT_DIR "${CMAKE_CURRENT_BINARY_DIR}/canopen"
+    canopen_firmware(
+        TARGET PressureSensor
+        LOCAL PressureSensor
+        DEFINITIONS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/examples/definitions"
     )
 endif()
 

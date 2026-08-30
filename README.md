@@ -21,16 +21,17 @@ parser -> resolver -> allocator -> validator -> resolved IR
                                                    |
                                       +------------+------------+
                                       |                         |
-                                     EDS                    Markdown
+                                 EDS + Markdown       Typed C++ symbols
                                       |
                                     Eds2Od
                                       |
                                CANoopEn C++ Object Dictionary
 ```
 
-YAML remains the source of truth. Generated artifacts belong in the build tree;
-CanOpenGen does not use persistent address lock files and does not generate CANoopEn
-C++ directly.
+YAML remains the source of truth. Production YAML belongs in a separate
+`CanOpenDefinitions` checkout; this repository retains only a small reference set in
+`examples/definitions`. Generated artifacts belong in the build tree and CanOpenGen
+does not use persistent address lock files.
 
 ## Development setup
 
@@ -64,10 +65,10 @@ module dependencies, aliases, enums, symbolic references, manual addresses, and
 deterministic automatic allocation:
 
 ```bash
-canopengen validate Device/PressureSensor.yml
-canopengen validate-all
-canopengen map Device/PressureSensor.yml
-canopengen generate Device/PressureSensor.yml --output build/canopen
+canopengen validate examples/definitions/Device/PressureSensor.yml
+canopengen validate-all --project-root examples/definitions
+canopengen map examples/definitions/Device/PressureSensor.yml
+canopengen generate examples/definitions/Device/PressureSensor.yml --output build/canopen
 ```
 
 The example project demonstrates nested imports, equal transitive dependency
@@ -79,11 +80,12 @@ mappability, and the classic 64-bit payload limit.
 ## EDS and CANoopEn output
 
 `generate` consumes only the fully resolved and allocated Object Dictionary. It writes
-`<device>.eds` and `<device>.md`, then invokes the bundled CANoopEnTools `Eds2Od` to write
-`<device>Od.hpp` and `<device>Od.cpp` under the supplied output directory:
+`<filename-stem>.eds`, `<filename-stem>.md`, typed `<filename-stem>Objects.hpp`, then
+invokes the bundled CANoopEnTools `Eds2Od` to write `<filename-stem>Od.hpp` and
+`<filename-stem>Od.cpp` under the supplied output directory:
 
 ```bash
-canopengen generate Device/PressureSensor.yml --output build/canopen
+canopengen generate examples/definitions/Device/PressureSensor.yml --output build/canopen
 ```
 
 The EDS backend uses CiA 306 numeric types and the exact Eds2Od leaf-section contract:
@@ -165,7 +167,7 @@ Inspect the public CRC32 inputs independently:
 ```bash
 canopengen address PressureSensor.pressure --category telemetry
 canopengen address PressureSensor.pressure --category telemetry \
-  --config Device/PressureSensor.yml
+  --config examples/definitions/Device/PressureSensor.yml
 ```
 
 Development follows short-lived branches into `develop`, Conventional Commits, and

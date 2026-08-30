@@ -97,7 +97,7 @@ jobs:
         run: python -m pip install --upgrade pip && python -m pip install -e '.[dev]'
 
       - name: Generate the reference CANopen Object Dictionary
-        run: canopengen generate Device/PressureSensor.yml --output build/canopen
+        run: canopengen generate examples/definitions/Device/PressureSensor.yml --output build/canopen
 
       - name: Run real Eds2Od integration test
         run: python -m pytest tests/integration/test_eds2od_integration.py

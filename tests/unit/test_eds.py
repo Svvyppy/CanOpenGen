@@ -13,7 +13,9 @@ PROJECT_ROOT = Path(__file__).parents[2]
 
 def _pressure_sensor_eds() -> str:
     """Generate the repository example from fully resolved Phase 4 IR."""
-    device = parse_device(PROJECT_ROOT / "Device" / "PressureSensor.yml")
+    device = parse_device(
+        PROJECT_ROOT / "examples" / "definitions" / "Device" / "PressureSensor.yml"
+    )
     graph = resolve_modules(device)
     resolved_types = resolve_module_graph_types(graph)
     dictionary = allocate_object_dictionary(graph.namespace, graph.objects)

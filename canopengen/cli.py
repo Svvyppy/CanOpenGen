@@ -10,8 +10,9 @@ from typing import cast
 
 from canopengen.allocator import allocate_object_dictionary, diagnose_address
 from canopengen.eds2od import run_eds2od
-from canopengen.errors import AllocationError, CanOpenGenError
-from canopengen.generators import generate_eds, generate_markdown
+from canopengen.errors import AllocationError, CanOpenGenError, CppGenerationError
+from canopengen.generators import generate_cpp_symbols, generate_eds, generate_markdown
+from canopengen.generators.cpp import validate_cpp_identifier
 from canopengen.model import (
     AllocatedObjectDictionary,
     DeviceDefinition,
@@ -96,28 +97,44 @@ def _validate_all(arguments: argparse.Namespace) -> int:
 
 def _generate(arguments: argparse.Namespace) -> int:
     """Generate EDS and CANoopEn C++ output from one complete device definition."""
-    device = parse_device(cast(Path, arguments.config))
+    config = cast(Path, arguments.config)
+    artifact_name = config.stem
+    try:
+        validate_cpp_identifier(artifact_name, description="device filename stem")
+    except CppGenerationError as error:
+        raise CppGenerationError(
+            f"invalid device filename '{config.name}': filename stem must be a valid "
+            "C++ namespace identifier. Suggested name: PressureSensor.yml"
+        ) from error
+    device = parse_device(config)
     graph, resolved_types, dictionary, pdos = _resolve_definition(device)
     output_dir = cast(Path, arguments.output)
     output_dir.mkdir(parents=True, exist_ok=True)
-    eds_path = output_dir / f"{device.name}.eds"
+    eds_path = output_dir / f"{artifact_name}.eds"
     eds_path.write_text(
         generate_eds(device.name, dictionary, resolved_types),
         encoding="utf-8",
     )
-    markdown_path = output_dir / f"{device.name}.md"
+    markdown_path = output_dir / f"{artifact_name}.md"
     markdown_path.write_text(
         generate_markdown(device, graph, dictionary, resolved_types, pdos),
+        encoding="utf-8",
+    )
+    symbols_path = output_dir / f"{artifact_name}Objects.hpp"
+    symbols_path.write_text(
+        generate_cpp_symbols(artifact_name, dictionary, resolved_types),
         encoding="utf-8",
     )
     result = run_eds2od(
         eds_path,
         output_dir,
-        device.name,
+        artifact_name,
         executable=cast(Path | None, arguments.eds2od),
+        cpp_namespace=cast(str | None, arguments.eds2od_namespace),
     )
     print(f"Generated {eds_path}")
     print(f"Generated {markdown_path}")
+    print(f"Generated {symbols_path}")
     print(f"Generated {result.hpp_path}")
     print(f"Generated {result.cpp_path}")
     return 0
@@ -174,6 +191,10 @@ def build_argument_parser() -> argparse.ArgumentParser:
     generate_parser.add_argument("config", type=Path, help="Device YAML path")
     generate_parser.add_argument(
         "--output", type=Path, required=True, help="build output directory"
+    )
+    generate_parser.add_argument(
+        "--eds2od-namespace",
+        help="optional C++ namespace for an isolated remote CANoopEn Object Dictionary",
     )
     generate_parser.add_argument(
         "--eds2od",
