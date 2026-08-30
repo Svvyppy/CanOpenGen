@@ -150,7 +150,11 @@ def _pascal_case(value: str) -> str:
     return "".join(part[:1].upper() + part[1:] for part in parts) or value
 
 
-def _enum_type_name(datatype: ResolvedDataType, resolved_types: ResolvedDefinitionTypes) -> str:
+def _enum_type_name(
+    datatype: ResolvedDataType,
+    resolved_types: ResolvedDefinitionTypes,
+    owner_namespace: str,
+) -> str:
     """Return the generated enum name associated with one resolved reference."""
     if datatype.custom_type_name is None:
         raise AssertionError("primitive datatype cannot require an enum name")
@@ -163,6 +167,9 @@ def _enum_type_name(datatype: ResolvedDataType, resolved_types: ResolvedDefiniti
             or custom.name == datatype.custom_type_name
         )
     )
+    local_candidates = tuple(custom for custom in candidates if custom.namespace == owner_namespace)
+    if len(local_candidates) == 1:
+        candidates = local_candidates
     if len(candidates) != 1:
         raise CppGenerationError(
             f"cannot unambiguously render enum datatype '{datatype.custom_type_name}'"
@@ -173,10 +180,14 @@ def _enum_type_name(datatype: ResolvedDataType, resolved_types: ResolvedDefiniti
     return _pascal_case(custom.namespace or "") + _pascal_case(custom.name)
 
 
-def _cpp_type(datatype: ResolvedDataType, resolved_types: ResolvedDefinitionTypes) -> str:
+def _cpp_type(
+    datatype: ResolvedDataType,
+    resolved_types: ResolvedDefinitionTypes,
+    owner_namespace: str,
+) -> str:
     """Map one resolved CANopen datatype to the public C++ metadata type."""
     if datatype.is_enum:
-        return _enum_type_name(datatype, resolved_types)
+        return _enum_type_name(datatype, resolved_types, owner_namespace)
     return _PRIMITIVE_CPP_TYPES[datatype.primitive.alias]
 
 
@@ -215,13 +226,14 @@ def _symbol_block(
     subindex: int,
     datatype: ResolvedDataType,
     resolved_types: ResolvedDefinitionTypes,
+    owner_namespace: str,
     *,
     indent: str,
 ) -> tuple[str, ...]:
     """Render one self-contained typed address tag and its inline symbol."""
     return (
         f"{indent}struct {type_name} {{",
-        f"{indent}    using Type = {_cpp_type(datatype, resolved_types)};",
+        f"{indent}    using Type = {_cpp_type(datatype, resolved_types, owner_namespace)};",
         f"{indent}    static constexpr std::uint16_t index = 0x{index:04X};",
         f"{indent}    static constexpr std::uint8_t subindex = 0x{subindex:02X};",
         f"{indent}}};",
@@ -299,6 +311,7 @@ def generate_cpp_symbols(
                         0,
                         _leaf_type(allocated, None, resolved),
                         resolved_types,
+                        owner,
                         indent=indent,
                     )
                 )
@@ -323,6 +336,7 @@ def generate_cpp_symbols(
                         subobject.subindex,
                         _leaf_type(allocated, subobject, resolved),
                         resolved_types,
+                        owner,
                         indent=indent + "    ",
                     )
                 )
