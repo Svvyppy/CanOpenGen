@@ -27,8 +27,7 @@ the canonical Wiki source and will grow with the corresponding public functional
 
 ## Wiki publishing
 
-Edit Wiki pages only in `docs/wiki` in the main repository. To publish them, clone the
+Edit Wiki pages only in `docs/wiki` in the source repository. To publish them, clone the
 repository's separate GitHub Wiki repository, replace its Markdown pages with the
 reviewed contents of this directory, inspect the diff, and commit that synchronized
 copy. This keeps repository history as the single authored documentation source.
-

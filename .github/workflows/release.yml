@@ -3,13 +3,13 @@ name: Release
 on:
   push:
     branches:
-      - main
+      - release/**
 
 permissions:
   contents: write
 
 concurrency:
-  group: release-main
+  group: release-${{ github.ref_name }}
   cancel-in-progress: false
 
 jobs:
@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Check out stable branch
+      - name: Check out release branch
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
@@ -35,7 +35,7 @@ jobs:
           && python -m pip install -e '.[dev]'
           'python-semantic-release>=10,<11'
 
-      - name: Verify stable branch
+      - name: Verify release branch
         run: >-
           python -m ruff format --check .
           && python -m ruff check .
