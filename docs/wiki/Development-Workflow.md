@@ -1,9 +1,10 @@
 # Development Workflow
 
-`main` contains stable releases and `develop` is the integration branch. Create
-short-lived `feature/*`, `fix/*`, `docs/*`, or `ci/*` branches from `develop`, use
-Conventional Commits, and submit focused pull requests back to `develop`. Release
-preparation flows from `develop` to `main` through a pull request.
+`develop` is the permanent integration branch. Create short-lived `feature/*`, `fix/*`,
+`docs/*`, or `ci/*` branches from `develop`, use Conventional Commits, and submit
+focused pull requests back to `develop`. Create a `release/*` branch from `develop`
+only when publishing a release, then merge that branch back into `develop` after the
+release. `main` is not used.
 
 ## Definition of done
 
@@ -14,7 +15,7 @@ where practical.
 
 ## Recommended branch protection
 
-Configure both `main` and `develop` in GitHub with:
+Configure `develop` and the protected `release/*` branch pattern in GitHub with:
 
 - direct pushes disabled;
 - pull requests required;
@@ -23,4 +24,3 @@ Configure both `main` and `develop` in GitHub with:
 
 Repository permissions remain an administrator concern and are not managed by the
 CanOpenGen application.
-

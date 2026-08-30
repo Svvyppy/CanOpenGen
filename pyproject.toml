@@ -98,8 +98,8 @@ tag_format = "v{version}"
 version_toml = ["pyproject.toml:project.version"]
 version_variables = ["canopengen/__init__.py:__version__"]
 
-[tool.semantic_release.branches.main]
-match = "main"
+[tool.semantic_release.branches.release]
+match = "release/.*"
 prerelease = false
 
 [tool.semantic_release.changelog.default_templates]
